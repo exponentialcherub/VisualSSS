@@ -56,11 +56,11 @@ int main(int argc, char ** argv)
     //objects.push_back(&sphere2);
     //objects.push_back(&sphere3);
     //objects.push_back(&sphere4);
-    //objects.push_back(&plane);
+    objects.push_back(&plane);
     objects.push_back(&bunny);
 
-    Camera camera = {{0, 0, -2}, 1, 2, 2, {0, 1, 0}, {1, 0, 0}, {0, 0, -1}};
-    Light light = {{-0.5, -0.5, 1}, 0.2, 0.8};
+    Camera camera = {{0, 0, 2}, 1, 2, 2, {0, 1, 0}, {1, 0, 0}, {0, 0, 1}};
+    Light light = {{-0.5, -0.5, -1}, 0.2, 0.8};
     light.dir.normalize();
     
     for(int i=0; i<width; i++)

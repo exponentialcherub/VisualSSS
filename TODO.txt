@@ -1,0 +1,2 @@
+--Fix wrong axis
+--Output new bunny coordinates for new bunny object, remove code in calculatetriangles

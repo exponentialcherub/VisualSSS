@@ -88,6 +88,15 @@ void Mesh::calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces) {
         Vector3f vertice2 = vertices.block < 1, 3 > (faces.coeff(i, 1), 0) / 50;
         Vector3f vertice3 = vertices.block < 1, 3 > (faces.coeff(i, 2), 0) / 50;
 
+        // Rotate bunny towards camera
+        // Ideally don't do this or resizing above
+        Vector3f temp = {(float)(vertice1[2]-1), vertice1[1], -vertice1[0]};
+        vertice1 = temp;
+        temp = {(float)(vertice2[2]-1), vertice2[1], -vertice2[0]};
+        vertice2 = temp;
+        temp = {(float)(vertice3[2]-1), vertice3[1], -vertice3[0]};
+        vertice3 = temp;
+
         Vector3f vector1 = vertice2 - vertice1;
         Vector3f vector2 = vertice3 - vertice2;
         Plane plane = Plane(vertice1, vector1.cross(vector2), colour);

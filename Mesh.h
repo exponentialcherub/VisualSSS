@@ -11,8 +11,6 @@ using namespace std;
 
 class Mesh : public Object
 {
-    Eigen::MatrixXf vertices;
-    Eigen::MatrixXi faces;
     vector<Triangle> triangles;
     int noTriangles;
 
@@ -23,5 +21,5 @@ class Mesh : public Object
         bool intersects(Line ray, Light light, float &t, float &ambAngle, float &specAngle, Vector3f &intersectionPoint) override;
 
     private:
-        void calculateTriangles();
+        void calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces);
 };

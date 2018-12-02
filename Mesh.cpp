@@ -2,10 +2,7 @@
 
 Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Vector3f c): Object(c)
 {
-    vertices = v;
-    faces = f;
-
-    calculateTriangles();
+    calculateTriangles(v, f);
 }
 
 bool Mesh::intersects(Line ray, float & t)
@@ -80,39 +77,28 @@ bool Mesh::intersects(Line ray, Light light, float & t, float & ambAngle, float 
 }
 
 /**
- * Crude method for extracting triangles for cube. Eventually this should be made into a generic mesh class. As
- * my cube object gives faces in sets of 4 vertices.
+ * Adds all triangles to list, this assumes that the faces are given in sets of 3 vertices.
  **/
-void Mesh::calculateTriangles() {
-    noTriangles = faces.rows() * 2;
+void Mesh::calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces) {
+    noTriangles = faces.rows();
     for (int i = 0; i < faces.rows(); i++) {
         // Assumes faces are given in sets of four vertices.
         // Triangle 1
-        Vector3f vertice1 = vertices.block < 1, 3 > (faces.coeff(i, 0), 0);
-        Vector3f vertice2 = vertices.block < 1, 3 > (faces.coeff(i, 1), 0);
-        Vector3f vertice3 = vertices.block < 1, 3 > (faces.coeff(i, 2), 0);
-        Vector3f vertice4 = vertices.block < 1, 3 > (faces.coeff(i, 3), 0);
+        Vector3f vertice1 = vertices.block < 1, 3 > (faces.coeff(i, 0), 0) / 50;
+        Vector3f vertice2 = vertices.block < 1, 3 > (faces.coeff(i, 1), 0) / 50;
+        Vector3f vertice3 = vertices.block < 1, 3 > (faces.coeff(i, 2), 0) / 50;
 
         Vector3f vector1 = vertice2 - vertice1;
         Vector3f vector2 = vertice3 - vertice2;
         Plane plane = Plane(vertice1, vector1.cross(vector2), colour);
         plane.normal.normalize();
-        Triangle triangle1 = {
+        Triangle triangle = {
             plane,
             vertice1,
             vertice2,
             vertice3
         };
 
-        // Triangle 2
-        Triangle triangle2 = {
-            plane,
-            vertice3,
-            vertice4,
-            vertice1
-        };
-
-        triangles.push_back(triangle1);
-        triangles.push_back(triangle2);
+        triangles.push_back(triangle);
     }
 }

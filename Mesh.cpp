@@ -1,12 +1,41 @@
 #include "Mesh.h"
-
+#include <iostream>
 Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Vector3f c): Object(c)
 {
     calculateTriangles(v, f);
+
+    float maxLimit = numeric_limits<float>::max();
+    float minLimit = numeric_limits<float>::min();
+    Vector3f min = {maxLimit, maxLimit, maxLimit};
+    Vector3f max = {minLimit, minLimit, minLimit};
+    for(int i=0; i< v.rows(); i++)
+    {
+        // Need to change this, shouldn't be making points smaller by 50, get updated model.
+        Vector3f vertice = v.block < 1, 3 > (i, 0) / 50;
+        if(vertice[0] < min[0])
+            min[0] = vertice[0];
+        if(vertice[1] < min[1])
+            min[1] = vertice[1];
+        if(vertice[2] < min[2])
+            min[2] = vertice[2];
+        if(vertice[0] > max[0])
+            max[0] = vertice[0];
+        if(vertice[1] > max[1])
+            max[1] = vertice[1];
+        if(vertice[2] > max[2])
+            max[2] = vertice[2];
+    }
+
+    boundingBox.setValues(min, max);
 }
 
 bool Mesh::intersects(Line ray, float & t)
 {
+    if(!boundingBox.intersects(ray))
+    {
+        return false;
+    }
+
     bool intersects = false;
 
     for (int i = 0; i < noTriangles; i++) {
@@ -32,6 +61,11 @@ bool Mesh::intersects(Line ray, float & t)
 
 bool Mesh::intersects(Line ray, Light light, float & t, float & ambAngle, float & specAngle, Vector3f & intersectionPoint)
 {
+    if(!boundingBox.intersects(ray))
+    {
+        return false;
+    }
+
     bool intersects = false;
     t = numeric_limits < float > ::max();
 

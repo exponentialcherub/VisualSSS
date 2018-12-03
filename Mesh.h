@@ -1,6 +1,7 @@
 #include "Object.h"
 #include "Plane.h"
 #include "Triangle.h"
+#include "BoundingBox.h"
 #include <Eigen/Core>
 #include <vector>
 #include <limits>
@@ -13,6 +14,7 @@ class Mesh : public Object
 {
     vector<Triangle> triangles;
     int noTriangles;
+    BoundingBox boundingBox;
 
     public:
         Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Vector3f c);

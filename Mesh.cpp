@@ -61,7 +61,7 @@ bool Mesh::intersects(Line ray, float & t)
     return intersects;
 }
 
-bool Mesh::intersects(Line ray, Light light, float & t, float & ambAngle, float & specAngle, Vector3f & intersectionPoint)
+bool Mesh::intersects(Line ray, Light light, float & t, Vector3f & normal, Vector3f & intersectionPoint)
 {
     if(!boundingBox.intersects(ray))
     {
@@ -95,16 +95,7 @@ bool Mesh::intersects(Line ray, Light light, float & t, float & ambAngle, float 
                 intersectionPoint = a;
                 intersects = true;
 
-                ambAngle = triangles[i].plane.normal.dot(-light.dir);
-                if (ambAngle < 0) {
-                    ambAngle = 0;
-                }
-
-                Vector3f reflection = light.dir - 2 * (light.dir.dot(triangles[i].plane.normal)) * triangles[i].plane.normal;
-                specAngle = reflection.dot(triangles[i].plane.normal);
-                if (specAngle < 0) {
-                    specAngle = 0;
-                }
+                normal = triangles[i].plane.normal;
             }
         }
     }

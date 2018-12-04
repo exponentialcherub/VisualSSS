@@ -28,7 +28,7 @@ bool Sphere::intersects(Line ray, float & t)
     return false;
 }
 
-bool Sphere::intersects(Line ray, Light light, float & t, float & ambAngle, float & specAngle, Vector3f & intersectionPoint) 
+bool Sphere::intersects(Line ray, Light light, float & t, Vector3f & normal, Vector3f & intersectionPoint) 
 {
     Line rayObjectSpace = ray;
     rayObjectSpace.origin -= origin;
@@ -49,17 +49,9 @@ bool Sphere::intersects(Line ray, Light light, float & t, float & ambAngle, floa
         // Intersection point
         Vector3f a = ray.origin + t * ray.direction;
         intersectionPoint = a;
+        // Normal for lighting calculations
         Vector3f normal = a - origin;
         normal.normalize();
-        ambAngle = normal.dot(-light.dir);
-        if (ambAngle < 0) {
-            ambAngle = 0;
-        }
-        Vector3f reflection = light.dir - 2 * (light.dir.dot(normal)) * normal;
-        specAngle = reflection.dot(-ray.direction);
-        if (specAngle < 0) {
-            specAngle = 0;
-        }
 
         return true;
     }

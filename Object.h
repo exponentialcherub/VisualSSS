@@ -19,7 +19,7 @@ class Object
             diffuse = colour * 0.5;
             specular = {0.5, 0.5, 0.5};
         }
-        virtual bool intersects(Line ray, Light light, float &t, float &ambAngle, float &specAngle, Vector3f &intersectionPoint) = 0;
+        virtual bool intersects(Line ray, Light light, float &t, Vector3f &normal, Vector3f &intersectionPoint) = 0;
         virtual bool intersects(Line ray, float &t) = 0;
         virtual bool isTranslucent() = 0;
 };

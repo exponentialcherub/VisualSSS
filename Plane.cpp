@@ -44,3 +44,8 @@ bool Plane::intersects(Line ray, Light light, float &t, float &ambAngle, float &
 
     return true;
 }
+
+bool Plane::isTranslucent()
+{
+    return false;
+}

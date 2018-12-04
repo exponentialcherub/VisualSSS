@@ -1,8 +1,10 @@
 #include "Mesh.h"
 #include <iostream>
-Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Vector3f c): Object(c)
+Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Vector3f c, bool isTranslucent): Object(c)
 {
     calculateTriangles(v, f);
+
+    translucent = isTranslucent;
 
     float maxLimit = numeric_limits<float>::max();
     float minLimit = numeric_limits<float>::min();
@@ -144,4 +146,9 @@ void Mesh::calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces) {
 
         triangles.push_back(triangle);
     }
+}
+
+bool Mesh::isTranslucent()
+{
+    return translucent;
 }

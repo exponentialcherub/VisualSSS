@@ -16,11 +16,14 @@ class Mesh : public Object
     int noTriangles;
     BoundingBox boundingBox;
 
+    bool translucent;
+
     public:
-        Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Vector3f c);
+        Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Vector3f c, bool isTranslucent);
         
         bool intersects(Line ray, float &t);
         bool intersects(Line ray, Light light, float &t, float &ambAngle, float &specAngle, Vector3f &intersectionPoint) override;
+        bool isTranslucent();
 
     private:
         void calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces);

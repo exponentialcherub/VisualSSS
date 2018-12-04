@@ -6,9 +6,7 @@ using namespace Eigen;
 class BoundingBox
 {
     public:
-        BoundingBox()
-        {
-        }
+        BoundingBox(){}
 
         bool intersects(Line ray);
         void setValues(Vector3f min, Vector3f max);

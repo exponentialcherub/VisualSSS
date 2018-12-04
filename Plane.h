@@ -13,4 +13,5 @@ class Plane : public Object
 
         bool intersects(Line ray, float &t);
         bool intersects(Line ray, Light light, float &t, float &ambAngle, float &specAngle, Vector3f &intersectionPoint);
+        bool isTranslucent();
 };

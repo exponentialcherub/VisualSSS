@@ -21,4 +21,5 @@ class Object
         }
         virtual bool intersects(Line ray, Light light, float &t, float &ambAngle, float &specAngle, Vector3f &intersectionPoint) = 0;
         virtual bool intersects(Line ray, float &t) = 0;
+        virtual bool isTranslucent() = 0;
 };

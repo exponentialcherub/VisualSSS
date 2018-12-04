@@ -1,7 +1,6 @@
 #include "BoundingBox.h"
 
-// Calculates if a ray instersects with bounding cube. Based on code from 
-// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+// Calculates if a ray instersects with bounding cube.
 bool BoundingBox::intersects(Line ray)
 {
     float tMinX = (min[0] - ray.origin[0]) / ray.direction[0];

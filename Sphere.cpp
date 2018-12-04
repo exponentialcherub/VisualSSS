@@ -65,3 +65,8 @@ bool Sphere::intersects(Line ray, Light light, float & t, float & ambAngle, floa
     }
     return false;
 }
+
+bool Sphere::isTranslucent()
+{
+    return false;
+}

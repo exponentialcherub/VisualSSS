@@ -28,7 +28,7 @@ bool Sphere::intersects(Line ray, float & t)
     return false;
 }
 
-bool Sphere::intersects(Line ray, Light light, float & t, Vector3f & normal, Vector3f & intersectionPoint) 
+bool Sphere::intersects(Line ray, float & t, Vector3f & normal, Vector3f & intersectionPoint) 
 {
     Line rayObjectSpace = ray;
     rayObjectSpace.origin -= origin;

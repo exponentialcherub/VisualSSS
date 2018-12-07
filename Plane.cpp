@@ -18,7 +18,7 @@ bool Plane::intersects(Line ray, float &t)
     return true;
 }
 
-bool Plane::intersects(Line ray, Light light, float &t, Vector3f &normalRet, Vector3f &intersectionPoint)
+bool Plane::intersects(Line ray, float &t, Vector3f &normalRet, Vector3f &intersectionPoint)
 {
     if(ray.direction.dot(normal) == 0)
     {

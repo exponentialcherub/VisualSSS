@@ -7,7 +7,8 @@ using namespace Eigen;
 class Light
 {
     public:
+        Vector3f origin;
         Vector3f dir;
-        float ambientI;
-        float localI;
+        Vector3f emittedLight;
+        float area;
 };

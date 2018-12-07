@@ -10,6 +10,7 @@
 #include <vector>
 #include <cmath>
 #include <limits>
+#include <time.h>
 
 using namespace std;
 using namespace Eigen;
@@ -27,6 +28,9 @@ int main(int argc, char ** argv)
             canvas[i][j] = (float *) malloc(3 * sizeof(float));
         }
     }
+
+    // Seed random generator.
+    srand(time(NULL));
 
     // Sub-surface scattering terms
     int singleScatteringSamples = 5;
@@ -51,24 +55,28 @@ int main(int argc, char ** argv)
     Eigen::MatrixXf V;
     Eigen::MatrixXi F;
     igl::readOBJ("Bunny-LowPoly.obj", V, F);
-    Vector3f cubeColour = {0, 1, 0};
-    Mesh bunny(V, F, cubeColour, true);
+    Vector3f bunnyColour = {0.83, 0.79, 0.75};
+    Mesh bunny(V, F, bunnyColour, true);
+    bunny.sigmaS = {2.19, 2.62, 3.00};
+    bunny.sigmaT = {0.0021, 0.0041, 0.0071};
 
     Plane plane = Plane({-1, 0, 0}, {1, 0, 0}, {1, 1, 1});
 
     Camera camera = {{0, 0, 2}, 1, 2, 2, {0, 1, 0}, {1, 0, 0}, {0, 0, 1}};
-    Light light = {{-0.5, -0.5, -1}, 0.2, 0.8};
+    Light light = {{100, 100, 100}, {-0.5, -0.5, -1}, {1, 1, 1}, 10};
     light.dir.normalize();
 
     Scene scene = Scene(light);
     scene.addObject(bunny);
     scene.addObject(plane);
     
+    int workCount = 0;
+
     for(int i=0; i<width; i++)
     {
         for(int j=0; j<height; j++)
         {
-            cout << i << "   " << j << endl;
+            //cout << i << "   " << j << endl;
             // Calculate point of pixel.
             float r = camera.width * (((i + 0.5) / width) - 0.5);
             float b = camera.height * (((j + 0.5) / height) - 0.5);
@@ -86,7 +94,12 @@ int main(int argc, char ** argv)
             
             Line ray = {pixelPoint, dir};
 
-            scene.rayTrace(ray, canvas[i][j]);
+            scene.rayTrace(ray, canvas[i][j], singleScatteringSamples, multipleScatteringSamples);
+
+            if(++workCount % 100 == 0)
+            {
+                cout << (float) (workCount * 100) / (width*height) << "%" << endl;  
+            }
         }
     }
 

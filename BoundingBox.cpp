@@ -3,6 +3,13 @@
 // Calculates if a ray instersects with bounding cube.
 bool BoundingBox::intersects(Line ray)
 {
+    // If ray originates in the bounding box then it will always intersect with the cube.
+    if(ray.origin[0] <= max[0] && ray.origin[1] <= max[1] && ray.origin[2] <= max[2] &&
+       ray.origin[0] >= min[0] && ray.origin[1] >= min[1] && ray.origin[2] >= min[2])
+    {
+        return true;
+    }
+
     float tMinX = (min[0] - ray.origin[0]) / ray.direction[0];
     float tMaxX = (max[0] - ray.origin[0]) / ray.direction[0];
     float tMinY = (min[1] - ray.origin[1]) / ray.direction[1];

@@ -12,14 +12,16 @@ class Object
         Vector3f colour;
         Vector3f diffuse;
         Vector3f specular;
+        Vector3f sigmaS;
+        Vector3f sigmaT;
         
         Object(Vector3f c)
         {
             colour = c;
-            diffuse = colour * 0.5;
+            diffuse = colour * 1;
             specular = {0.5, 0.5, 0.5};
         }
-        virtual bool intersects(Line ray, Light light, float &t, Vector3f &normal, Vector3f &intersectionPoint) = 0;
+        virtual bool intersects(Line ray, float &t, Vector3f &normal, Vector3f &intersectionPoint) = 0;
         virtual bool intersects(Line ray, float &t) = 0;
         virtual bool isTranslucent() = 0;
 };

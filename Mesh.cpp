@@ -61,7 +61,7 @@ bool Mesh::intersects(Line ray, float & t)
     return intersects;
 }
 
-bool Mesh::intersects(Line ray, Light light, float & t, Vector3f & normal, Vector3f & intersectionPoint)
+bool Mesh::intersects(Line ray, float & t, Vector3f & normal, Vector3f & intersectionPoint)
 {
     if(!boundingBox.intersects(ray))
     {
@@ -128,12 +128,13 @@ void Mesh::calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces) {
         Vector3f vector2 = vertice3 - vertice2;
         Plane plane = Plane(vertice1, vector1.cross(vector2), colour);
         plane.normal.normalize();
-        Triangle triangle = {
+        Triangle triangle;
+        triangle.setValues(
             plane,
             vertice1,
             vertice2,
             vertice3
-        };
+        );
 
         triangles.push_back(triangle);
     }

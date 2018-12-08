@@ -13,7 +13,7 @@ class Object
         Vector3f diffuse;
         Vector3f specular;
         Vector3f sigmaS;
-        Vector3f sigmaT;
+        Vector3f sigmaA;
         
         Object(Vector3f c)
         {
@@ -24,4 +24,9 @@ class Object
         virtual bool intersects(Line ray, float &t, Vector3f &normal, Vector3f &intersectionPoint) = 0;
         virtual bool intersects(Line ray, float &t) = 0;
         virtual bool isTranslucent() = 0;
+
+        Vector3f getSigmaT()
+        {
+            return sigmaS + sigmaA;
+        }
 };

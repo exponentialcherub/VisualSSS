@@ -71,9 +71,9 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
 
     // Single scattering term
     Vector3f singleScatteringContribution = {0, 0, 0};
-    if(objects[closest]->isTranslucent())
+    if(objects[closest]->isTranslucent() && false)
     {
-        Vector3f sigmaTx0 = objects[closest]->sigmaT;
+        Vector3f sigmaTx0 = objects[closest]->getSigmaT();
         float sigmaTx0Mean = (sigmaTx0[0] + sigmaTx0[1] + sigmaTx0[2])/3;
         Vector3f sigmaS = objects[closest]->sigmaS;
 
@@ -153,6 +153,14 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         }
 
         singleScatteringContribution =  scale * singleScatteringContribution / singleScatteringSamples;
+    }
+
+    // Multiple scattering
+    Vector3f multipleScatteringContribution = {0, 0, 0};
+    if(objects[closest]->isTranslucent())
+    {
+        Vector3f sigmaTx0 = objects[closest]->getSigmaT();
+
     }
 
     if(!shadow && !objects[closest]->isTranslucent())

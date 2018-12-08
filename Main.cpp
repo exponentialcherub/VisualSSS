@@ -63,12 +63,12 @@ int main(int argc, char ** argv)
     Vector3f bunnyColour = {0.83, 0.79, 0.75};
     Mesh bunny(V, F, bunnyColour, true);
     bunny.sigmaS = {2.19, 2.62, 3.00};
-    bunny.sigmaT = {0.0021, 0.0041, 0.0071};
+    bunny.sigmaA = {0.0021, 0.0041, 0.0071};
 
     Plane plane = Plane({-1, 0, 0}, {1, 0, 0}, {1, 1, 1});
 
     Camera camera = {{0, 0, 2}, 1, 2, 2, {0, 1, 0}, {1, 0, 0}, {0, 0, 1}};
-    Light light = {{100, 100, 100}, {-0.5, -0.5, -1}, {1, 1, 1}, 40};
+    Light light = {{5, 5, 5}, {-0.5, -0.5, -1}, {1, 1, 1}, 100};
     light.dir.normalize();
 
     Scene scene = Scene(light);

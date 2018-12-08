@@ -29,12 +29,17 @@ int main(int argc, char ** argv)
         }
     }
 
+    // Sub-surface scattering terms
+    int singleScatteringSamples = 10;
+    int multipleScatteringSamples = 5;
+
     // Seed random generator.
     srand(time(NULL));
 
-    // Sub-surface scattering terms
-    int singleScatteringSamples = 5;
-    int multipleScatteringSamples = 5;
+    /*/ Setup uniform random generator.
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_real_distribution<float> dis(0, RAND_MAX);*/
 
     /*Vector3f sphere1Origin = {0, 1, 3};
     Vector3f sphere1Colour = {1, 0, 0};
@@ -63,7 +68,7 @@ int main(int argc, char ** argv)
     Plane plane = Plane({-1, 0, 0}, {1, 0, 0}, {1, 1, 1});
 
     Camera camera = {{0, 0, 2}, 1, 2, 2, {0, 1, 0}, {1, 0, 0}, {0, 0, 1}};
-    Light light = {{100, 100, 100}, {-0.5, -0.5, -1}, {1, 1, 1}, 10};
+    Light light = {{100, 100, 100}, {-0.5, -0.5, -1}, {1, 1, 1}, 40};
     light.dir.normalize();
 
     Scene scene = Scene(light);

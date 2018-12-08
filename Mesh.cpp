@@ -75,7 +75,8 @@ bool Mesh::intersects(Line ray, float & t, Vector3f & normal, Vector3f & interse
         float newT = triangles[i].plane.normal.dot(triangles[i].plane.point - ray.origin) /
             (triangles[i].plane.normal.dot(ray.direction));
 
-        if (newT < 0) {
+        // If intersection is on or behind origin then ignore. 
+        if (newT < 0.00001) {
             continue;
         }
 
@@ -96,6 +97,7 @@ bool Mesh::intersects(Line ray, float & t, Vector3f & normal, Vector3f & interse
                 intersects = true;
 
                 normal = triangles[i].plane.normal;
+                normal.normalize();
             }
         }
     }

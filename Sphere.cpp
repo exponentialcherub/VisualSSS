@@ -62,3 +62,10 @@ bool Sphere::isTranslucent()
 {
     return false;
 }
+
+Vector3f Sphere::randomPoint(Vector3f &normal)
+{
+    // TODO
+    Vector3f point;
+    return point;
+}

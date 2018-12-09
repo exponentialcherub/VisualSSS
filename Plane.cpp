@@ -36,3 +36,10 @@ bool Plane::isTranslucent()
 {
     return false;
 }
+
+Vector3f Plane::randomPoint(Vector3f &normal)
+{
+    // TODO
+    Vector3f point;
+    return point;
+}

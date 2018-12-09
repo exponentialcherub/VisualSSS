@@ -17,10 +17,11 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
     int closest = -1;
     Vector3f normal;
     Vector3f intersectionPoint;
+    // TODO: Remove this at end, use BSSRDF or plane
     float diffAngle = 0;
     float specAngle = 0;
     float refractionIndex = 1.5;
-    float scale = 1;
+    float singleScatterWeight = 1;
 
     for(int k=0; k<objects.size(); k++)
     {
@@ -71,7 +72,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
 
     // Single scattering term
     Vector3f singleScatteringContribution = {0, 0, 0};
-    if(objects[closest]->isTranslucent() && false)
+    if(objects[closest]->isTranslucent())
     {
         Vector3f sigmaTx0 = objects[closest]->getSigmaT();
         float sigmaTx0Mean = (sigmaTx0[0] + sigmaTx0[1] + sigmaTx0[2])/3;
@@ -107,9 +108,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             Vector3f point = rayTest.origin + t * rayTest.direction;
             float s0 = distanceTwoPoints(intersectionPoint, point);
 
-            // TODO: Currently only supports a single light.
             // Find light intersection with object
-            // TODO: MAYBE WRONG, LOOK AT OTHER CODE
             Vector3f dir = light.origin - point;
             dir.normalize();
             Line lightRay = {point, dir};
@@ -119,6 +118,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             float si;
             if(!objects[closest]->intersects(lightRay, lightT, normali, c))
             {
+                //TODO: is this necessary, can I do this old way?
                c = point;
                si = 0;
                normali = maxNormal;
@@ -128,31 +128,28 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             
             // Find distance from light to object intersection.
             float distance = distanceTwoPoints(c, light.origin);
-            //float distance = ((light.origin[0] - lightRay.origin[0]) / lightRay.direction[0]) * scale;
-            // Possible rounding error?
-            Vector3f outgoingRadiance = (light.emittedLight * light.area) / (distance * distance);
+            Vector3f radiance = (light.emittedLight * light.area) / (distance * distance);
 
-            // TODO: Figure out what is right here.
-            float wiDotNi = fabs((-lightRay.direction).dot(normali));
+            float wiDotNi = fabs((lightRay.direction).dot(normali));
             Vector3f averageNormal = (normali + normal) / 2;
-            float wiDotN = fabs((-lightRay.direction).dot(averageNormal));
+            float wiDotN = fabs((lightRay.direction).dot(averageNormal));
             float refractedDistance = (si * wiDotNi) / 
                                       sqrt(1 - (1/(refractionIndex*refractionIndex) * (1- wiDotN*wiDotN)));
             float fresnelTrans1 = FresnelTransmission(refractionIndex, acos(wiDotNi));
 
-            // Set equal as same material.
+            // Set equal as same object material.
             Vector3f sigmaTxi = sigmaTx0;
             Vector3f sigmaTc = sigmaTx0 + (fabs(normali.dot(ray.direction)) / wiDotNi) * sigmaTxi;
             
             singleScatteringContribution[0] += ((sigmaS[0] * fresnelTrans0 * fresnelTrans1 * (1/sigmaTc[0])) 
-                                           * expf(-refractedDistance*sigmaTxi[0]) * expf(-s0 * sigmaTx0[0]) * outgoingRadiance[0]);
+                                           * expf(-refractedDistance*sigmaTxi[0]) * expf(-s0 * sigmaTx0[0]) * radiance[0]);
             singleScatteringContribution[1] += ((sigmaS[0] * fresnelTrans0 * fresnelTrans1 * (1/sigmaTc[1])) 
-                                           * expf(-refractedDistance*sigmaTxi[1]) * expf(-s0 * sigmaTx0[1]) * outgoingRadiance[1]);
+                                           * expf(-refractedDistance*sigmaTxi[1]) * expf(-s0 * sigmaTx0[1]) * radiance[1]);
             singleScatteringContribution[2] += ((sigmaS[0] * fresnelTrans0 * fresnelTrans1 * (1/sigmaTc[2])) 
-                                           * expf(-refractedDistance*sigmaTxi[2]) * expf(-s0 * sigmaTx0[2]) * outgoingRadiance[2]);
+                                           * expf(-refractedDistance*sigmaTxi[2]) * expf(-s0 * sigmaTx0[2]) * radiance[2]);
         }
 
-        singleScatteringContribution =  scale * singleScatteringContribution / singleScatteringSamples;
+        singleScatteringContribution =  singleScatterWeight * singleScatteringContribution / singleScatteringSamples;
     }
 
     // Multiple scattering
@@ -160,7 +157,58 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
     if(objects[closest]->isTranslucent())
     {
         Vector3f sigmaTx0 = objects[closest]->getSigmaT();
+        Vector3f sigmaTR = objects[closest]->getSigmaTR();
+        float sigmaTRMean = (sigmaTR[0] + sigmaTR[1] + sigmaTR[2]);
+        Vector3f reducedSigmaT = objects[closest]->getReducedSigmaT();
 
+        // Dipole placement
+        Vector3f realSourcePoint = intersectionPoint - normal * ((reducedSigmaT[0] + reducedSigmaT[1] + reducedSigmaT[2])/3);
+        //float rDistance = distanceTwoPoints(realSourcePoint, intersectionPoint); don't need
+        
+        // Fresnel approximation
+        float Fdr = (1.44 * (1/pow(refractionIndex, 2))) + (0.710 / refractionIndex) + 0.668 + (0.0636 * refractionIndex);
+        // Does this still need 3 *, taken out as it cancels with reducedSigmaT average.
+        float virtualDistance = 2 * ((1 + Fdr)/(1 - Fdr)) * (1 / (reducedSigmaT[0] + reducedSigmaT[1] + reducedSigmaT[2])); 
+        Vector3f virtualSourcePoint =  intersectionPoint + normal * virtualDistance;
+        float vDistance = distanceTwoPoints(virtualSourcePoint, intersectionPoint);
+
+        // Fresnel reflectance at x0
+        float theta = acosf(normal.dot(-ray.direction));
+        float fresnelTrans0 = FresnelTransmission(1/refractionIndex, theta);
+
+        for(int i=0; i<multipleScatteringSamples; i++)
+        {
+            Vector3f normali;
+            Vector3f rndPoint = objects[closest]->randomPoint(normali);
+            float weight = sigmaTRMean * expf(-distanceTwoPoints(intersectionPoint, rndPoint)*sigmaTRMean);
+
+            // Distance between sampled point and dipole sources.
+            float dr = distanceTwoPoints(rndPoint, realSourcePoint);
+            float dv = distanceTwoPoints(rndPoint, virtualSourcePoint);
+
+            // Calculate light intensity.
+            float lightDistance = distanceTwoPoints(light.origin, rndPoint);
+            Vector3f radiance = (light.emittedLight * light.area) / (lightDistance * lightDistance);
+
+            // Fresnel reflectance at xi
+            float fresnelTrans1 = FresnelTransmission(refractionIndex, acos(fabs((light.origin - rndPoint).dot(normali))));
+            
+            // TODO: Store this in object.
+            float albedo = 1;
+            // TODO: fresnel reflefctance
+            Vector3f diffuse;
+            diffuse[0] = radiance[0] * (albedo / (4 * EIGEN_PI)) * 
+                         (((sigmaTR[0] * dr + 1) * (expf(-sigmaTR[0]*dr) / (reducedSigmaT[0]*pow(dr, 3)))) + 
+                            vDistance * (sigmaTR[0]*dv + 1) * (expf(-sigmaTR[0]*dr) / (reducedSigmaT[0]*pow(dr, 3))));
+            diffuse[1] = radiance[1] * (albedo / (4 * EIGEN_PI)) * 
+                         (((sigmaTR[1] * dr + 1) * (expf(-sigmaTR[1]*dr) / (reducedSigmaT[1]*pow(dr, 3)))) + 
+                            vDistance * (sigmaTR[1]*dv + 1) * (expf(-sigmaTR[1]*dr) / (reducedSigmaT[1]*pow(dr, 3))));
+            diffuse[2] = radiance[2] * (albedo / (4 * EIGEN_PI)) * 
+                         (((sigmaTR[2] * dr + 1) * (expf(-sigmaTR[2]*dr) / (reducedSigmaT[2]*pow(dr, 3)))) + 
+                            vDistance * (sigmaTR[2]*dv + 1) * (expf(-sigmaTR[2]*dr) / (reducedSigmaT[2]*pow(dr, 3))));
+            multipleScatteringContribution += (weight * diffuse * fresnelTrans1);
+        }
+        multipleScatteringContribution *= fresnelTrans0 * 100 / multipleScatteringSamples;
     }
 
     if(!shadow && !objects[closest]->isTranslucent())
@@ -184,11 +232,11 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
     pixel[2] = objects[closest]->colour[2] * 0.2 + diffAngle*objects[closest]->diffuse[2]*light.localI + pow(specAngle, 20)*objects[closest]->specular[2];*/
 
     pixel[0] = objects[closest]->colour[0]*0.2 + diffAngle*objects[closest]->diffuse[0]*light.emittedLight[0] + 
-               pow(specAngle, 20)*objects[closest]->specular[0] + singleScatteringContribution[0];
+               pow(specAngle, 20)*objects[closest]->specular[0] + singleScatteringContribution[0] + multipleScatteringContribution[0];
     pixel[1] = objects[closest]->colour[1]*0.2 + diffAngle*objects[closest]->diffuse[1]*light.emittedLight[1] + 
-               pow(specAngle, 20)*objects[closest]->specular[1] + singleScatteringContribution[1];
+               pow(specAngle, 20)*objects[closest]->specular[1] + singleScatteringContribution[1] + multipleScatteringContribution[1];
     pixel[2] = objects[closest]->colour[2]*0.2 + diffAngle*objects[closest]->diffuse[2]*light.emittedLight[2] + 
-               pow(specAngle, 20)*objects[closest]->specular[2] + singleScatteringContribution[2];
+               pow(specAngle, 20)*objects[closest]->specular[2] + singleScatteringContribution[2] + multipleScatteringContribution[2];
 }
 
 float Scene::FresnelTransmission(float n, float theta)

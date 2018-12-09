@@ -17,8 +17,8 @@ using namespace Eigen;
 
 int main(int argc, char ** argv)
 {
-    int width = 100;
-    int height = 100;
+    int width = 200;
+    int height = 200;
     float *** canvas = (float ***) malloc(width * sizeof(float **));
     for(int i = 0; i < width; i++)
     {
@@ -30,8 +30,8 @@ int main(int argc, char ** argv)
     }
 
     // Sub-surface scattering terms
-    int singleScatteringSamples = 10;
-    int multipleScatteringSamples = 5;
+    int singleScatteringSamples = 100;
+    int multipleScatteringSamples = 100;
 
     // Seed random generator.
     srand(time(NULL));

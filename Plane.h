@@ -16,4 +16,5 @@ class Plane : public Object
         bool intersects(Line ray, float &t);
         bool intersects(Line ray, float &t, Vector3f &normalRet, Vector3f &intersectionPoint);
         bool isTranslucent();
+        Vector3f randomPoint(Vector3f &normal);
 };

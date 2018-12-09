@@ -6,7 +6,8 @@
 #include <Eigen/Core>
 #include <vector>
 #include <limits>
-#include <cmath>
+#include <math.h>
+#include <stdlib.h> 
 
 using namespace Eigen;
 using namespace std;
@@ -25,6 +26,7 @@ class Mesh : public Object
         bool intersects(Line ray, float &t);
         bool intersects(Line ray, float &t, Vector3f &normal, Vector3f &intersectionPoint) override;
         bool isTranslucent();
+        Vector3f randomPoint(Vector3f &normal);
 
     private:
         void calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces);

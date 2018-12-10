@@ -69,3 +69,9 @@ Vector3f Sphere::randomPoint(Vector3f &normal)
     Vector3f point;
     return point;
 }
+
+float Sphere::getBoundingBoxIntersect(Line ray)
+{
+    //TODO
+    return -1;
+}

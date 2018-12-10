@@ -13,6 +13,7 @@ class Scene
 {
     vector<Object*> objects;
     Light light;
+    Vector3f background;
 
     float FresnelTransmission(float n, float theta);
     float FresnelReflectance(float n, float theta);

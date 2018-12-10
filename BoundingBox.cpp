@@ -59,6 +59,37 @@ bool BoundingBox::intersects(Line ray)
     return true;
 }
 
+float BoundingBox::getIntersectT(Line ray)
+{
+    float tValues[6];
+
+    Plane planeMinX(min, {1, 0, 0}, {0, 0, 0});
+    Plane planeMaxX(max, {1, 0, 0}, {0, 0, 0});
+    planeMinX.intersects(ray, tValues[0]);
+    planeMaxX.intersects(ray, tValues[1]);
+
+    Plane planeMinY(min, {0, 1, 0}, {0, 0, 0});
+    Plane planeMaxY(max, {0, 1, 0}, {0, 0, 0});
+    planeMinY.intersects(ray, tValues[2]);
+    planeMaxY.intersects(ray, tValues[3]);
+
+    Plane planeMinZ(min, {0, 0, 1}, {0, 0, 0});
+    Plane planeMaxZ(max, {0, 0, 1}, {0, 0, 0});
+    planeMinZ.intersects(ray, tValues[4]);
+    planeMaxZ.intersects(ray, tValues[5]);
+
+    float t = std::numeric_limits<float>::max();
+    for(int i=0; i<6; i++)
+    {
+        if(tValues[i] < t && tValues[i] > 0)
+        {
+            t = tValues[i];
+        }
+    }
+
+    return t;
+}
+
 void BoundingBox::setValues(Vector3f minimum, Vector3f maximum)
 {
     min = minimum;

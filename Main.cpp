@@ -15,6 +15,11 @@
 using namespace std;
 using namespace Eigen;
 
+void processPixels(int rows, int startRow)
+{
+
+}
+
 int main(int argc, char ** argv)
 {
     int width = 200;
@@ -30,8 +35,8 @@ int main(int argc, char ** argv)
     }
 
     // Sub-surface scattering terms
-    int singleScatteringSamples = 100;
-    int multipleScatteringSamples = 100;
+    int singleScatteringSamples = 20;
+    int multipleScatteringSamples = 1000;
 
     // Seed random generator.
     srand(time(NULL));
@@ -59,7 +64,7 @@ int main(int argc, char ** argv)
     
     Eigen::MatrixXf V;
     Eigen::MatrixXi F;
-    igl::readOBJ("Bunny-LowPoly.obj", V, F);
+    igl::readOBJ("bun_zipper_res4.obj", V, F);
     Vector3f bunnyColour = {0.83, 0.79, 0.75};
     Mesh bunny(V, F, bunnyColour, true);
     bunny.sigmaS = {2.19, 2.62, 3.00};
@@ -67,13 +72,12 @@ int main(int argc, char ** argv)
 
     Plane plane = Plane({-1, 0, 0}, {1, 0, 0}, {1, 1, 1});
 
-    Camera camera = {{0, 0, 2}, 1, 2, 2, {0, 1, 0}, {1, 0, 0}, {0, 0, 1}};
-    Light light = {{5, 5, 5}, {-0.5, -0.5, -1}, {1, 1, 1}, 100};
-    light.dir.normalize();
+    Camera camera = {{0, 0, 2}, 1, 2, 2, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    Light light = {{0, 0, 5}, {1, 1, 1}, 2.2};
 
     Scene scene = Scene(light);
     scene.addObject(bunny);
-    scene.addObject(plane);
+    //scene.addObject(plane);
     
     int workCount = 0;
 

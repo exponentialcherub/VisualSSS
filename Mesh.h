@@ -25,6 +25,7 @@ class Mesh : public Object
         
         bool intersects(Line ray, float &t);
         bool intersects(Line ray, float &t, Vector3f &normal, Vector3f &intersectionPoint) override;
+        float getBoundingBoxIntersect(Line ray) override;
         bool isTranslucent();
         Vector3f randomPoint(Vector3f &normal);
 

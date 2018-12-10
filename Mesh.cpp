@@ -13,7 +13,9 @@ Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Vector3f c, bool isTranslucent)
     for(int i=0; i< v.rows(); i++)
     {
         // Need to change this, shouldn't be making points smaller by 50, get updated model.
-        Vector3f vertice = v.block < 1, 3 > (i, 0) / 50;
+        Vector3f vertice = v.block < 1, 3 > (i, 0);// 50;
+        Vector3f translate = {0, -1, 0};
+        vertice = (vertice * 10) + translate;
         if(vertice[0] < min[0])
             min[0] = vertice[0];
         if(vertice[1] < min[1])
@@ -113,18 +115,21 @@ void Mesh::calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces) {
     for (int i = 0; i < faces.rows(); i++) {
         // Assumes faces are given in sets of four vertices.
         // Triangle 1
-        Vector3f vertice1 = vertices.block < 1, 3 > (faces.coeff(i, 0), 0) / 50;
-        Vector3f vertice2 = vertices.block < 1, 3 > (faces.coeff(i, 1), 0) / 50;
-        Vector3f vertice3 = vertices.block < 1, 3 > (faces.coeff(i, 2), 0) / 50;
-
+        Vector3f translate = {0, -1, 0};
+        Vector3f vertice1 = vertices.block < 1, 3 > (faces.coeff(i, 0), 0);// 50;
+        Vector3f vertice2 = vertices.block < 1, 3 > (faces.coeff(i, 1), 0);// 50;
+        Vector3f vertice3 = vertices.block < 1, 3 > (faces.coeff(i, 2), 0);// 50;
+        vertice1 = (vertice1 * 10) + translate;
+        vertice2 = (vertice2 * 10) + translate;
+        vertice3 = (vertice3 * 10) + translate;
         // Rotate bunny towards camera
         // Ideally don't do this or resizing above
-        Vector3f temp = {(float)(vertice1[2]-1), vertice1[1], -vertice1[0]};
+        /*Vector3f temp = {(float)(vertice1[2]-1), vertice1[1], -vertice1[0]};
         vertice1 = temp;
         temp = {(float)(vertice2[2]-1), vertice2[1], -vertice2[0]};
         vertice2 = temp;
         temp = {(float)(vertice3[2]-1), vertice3[1], -vertice3[0]};
-        vertice3 = temp;
+        vertice3 = temp;*/
 
         Vector3f vector1 = vertice2 - vertice1;
         Vector3f vector2 = vertice3 - vertice2;
@@ -159,4 +164,9 @@ Vector3f Mesh::randomPoint(Vector3f &normal)
     Vector3f point = (1 - sqrt(r1)) * tri.point1 + (sqrt(r1)*(1-r2)) * tri.point2 + (sqrt(r1)*r2) * tri.point3;
     normal = tri.plane.normal;
     return point;
+}
+
+float Mesh::getBoundingBoxIntersect(Line ray)
+{
+    return boundingBox.getIntersectT(ray);
 }

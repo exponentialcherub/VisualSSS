@@ -43,3 +43,9 @@ Vector3f Plane::randomPoint(Vector3f &normal)
     Vector3f point;
     return point;
 }
+
+float Plane::getBoundingBoxIntersect(Line ray)
+{
+    //TODO
+    return -1;
+}

@@ -26,6 +26,7 @@ class Object
         virtual bool intersects(Line ray, float &t) = 0;
         virtual bool isTranslucent() = 0;
         virtual Vector3f randomPoint(Vector3f &normal) = 0;
+        virtual float getBoundingBoxIntersect(Line ray) = 0;
 
         Vector3f getSigmaT()
         {

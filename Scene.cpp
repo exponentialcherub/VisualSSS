@@ -139,17 +139,23 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             }
 
             si = distanceTwoPoints(point, c);
+
+            float wiDotNi = fabs((lightRay.direction).dot(normali));
             
             // Find distance from light to object intersection.
             float distance = distanceTwoPoints(c, lightPoint);
-            Vector3f radiance = (light.emittedLight * light.getArea()) / (distance * distance);
-
-            float wiDotNi = fabs((lightRay.direction).dot(normali));
+            Vector3f radiance = (light.emittedLight * light.getArea()) * wiDotNi / (distance * distance);
+            for(int k = 0; k < 3; k++)
+            {
+                if(radiance[k] < 0)
+                    radiance[k] = 0;
+            }
+            
             Vector3f averageNormal = (normali + normal) / 2;
             // TODO: Check if this is right, compare at higher res.
-            float wiDotN = fabs((lightRay.direction).dot(averageNormal));
+            float wiDotN = fabs((lightRay.direction).dot(normal));
             float refractedDistance = (si * wiDotNi) / 
-                                      sqrt(1 - (1/(refractionIndex*refractionIndex) * (1- wiDotN*wiDotN)));
+                                      sqrt(1 - (1/(refractionIndex*refractionIndex) * (1- wiDotNi*wiDotNi)));
             float fresnelTrans1 = FresnelTransmission(refractionIndex, acos(wiDotNi));
 
             // Set equal as same object material.
@@ -177,7 +183,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
 
     // Multiple scattering
     Vector3f multipleScatteringContribution = {0, 0, 0};
-    if(objects[closest]->isTranslucent() && false)
+    if(objects[closest]->isTranslucent())
     {
         Vector3f sigmaTx0 = objects[closest]->getSigmaT();
         Vector3f sigmaTR = objects[closest]->getSigmaTR();
@@ -186,13 +192,14 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         float reducedSigmaTMean = (reducedSigmaT[0] + reducedSigmaT[1] + reducedSigmaT[2]) / 3;
 
         // Dipole placement
-        Vector3f realSourcePoint = intersectionPoint - normal * (1 / reducedSigmaTMean);
+        Vector3f realSourcePoint = intersectionPoint + normal * (1 / reducedSigmaTMean);
 
         // Fresnel approximation
         float Fdr = (1.44 * (1/pow(refractionIndex, 2))) + (0.710 / refractionIndex) + 0.668 + (0.0636 * refractionIndex);
+        float rDistance = distanceTwoPoints(realSourcePoint, intersectionPoint);
 
         float virtualDistance = (1 / reducedSigmaTMean) + 4 * ((1 + Fdr)/(1 - Fdr)) / (3 * reducedSigmaTMean); 
-        Vector3f virtualSourcePoint =  intersectionPoint + normal * virtualDistance;
+        Vector3f virtualSourcePoint =  intersectionPoint - normal * virtualDistance;
         float vDistance = distanceTwoPoints(virtualSourcePoint, intersectionPoint);
 
         // Fresnel reflectance at x0
@@ -210,7 +217,8 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             Vector3f lightPoint = light.randomPoint();
             Vector3f normali;
             Vector3f rndPoint = objects[closest]->randomPoint(normali);
-            float weight = sigmaTRMean * expf(-distanceTwoPoints(intersectionPoint, rndPoint)*sigmaTRMean);
+            //float weight = sigmaTRMean * expf(-distanceTwoPoints(intersectionPoint, rndPoint)*sigmaTRMean);
+            float weight  = 1 - exp(-distanceTwoPoints(intersectionPoint, rndPoint) / sigmaTRMean);
             totalWeight += weight;
             // Distance between sampled point and dipole sources.
             float dr = distanceTwoPoints(rndPoint, realSourcePoint);
@@ -218,27 +226,32 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
 
             // Calculate light intensity.
             float lightDistance = distanceTwoPoints(lightPoint, rndPoint);
-            Vector3f radiance = (light.emittedLight * light.getArea()) / (lightDistance * lightDistance);
+            Vector3f radiance = (light.emittedLight * light.getArea()) * (lightPoint - rndPoint).dot(normali) / (lightDistance * lightDistance);
+            for(int k = 0; k < 3; k++)
+            {
+                if(radiance[k] < 0)
+                    radiance[k] = 0;
+            }
 
             // Fresnel reflectance at xi
             float fresnelTrans1 = FresnelTransmission(refractionIndex, acos(fabs((lightPoint - rndPoint).dot(normali))));
 
             // TODO: Store this in object.
-            float albedo = 1;
+            float albedo = 0.5;
             // TODO: fresnel reflefctance
             Vector3f diffuse;
             diffuse[0] = radiance[0] * (albedo / (4 * EIGEN_PI)) * 
-                         (((sigmaTR[0] * dr + 1) * (expf(-sigmaTR[0]*dr) / (reducedSigmaT[0]*pow(dr, 3)))) + 
+                         (rDistance * ((sigmaTR[0] * dr + 1) * (expf(-sigmaTR[0]*dr) / (reducedSigmaT[0]*pow(dr, 3)))) - 
                             vDistance * (sigmaTR[0]*dv + 1) * (expf(-sigmaTR[0]*dv) / (reducedSigmaT[0]*pow(dv, 3))));
             diffuse[1] = radiance[1] * (albedo / (4 * EIGEN_PI)) * 
-                         (((sigmaTR[1] * dr + 1) * (expf(-sigmaTR[1]*dr) / (reducedSigmaT[1]*pow(dr, 3)))) + 
+                         (rDistance * ((sigmaTR[1] * dr + 1) * (expf(-sigmaTR[1]*dr) / (reducedSigmaT[1]*pow(dr, 3)))) - 
                             vDistance * (sigmaTR[1]*dv + 1) * (expf(-sigmaTR[1]*dv) / (reducedSigmaT[1]*pow(dv, 3))));
             diffuse[2] = radiance[2] * (albedo / (4 * EIGEN_PI)) * 
-                         (((sigmaTR[2] * dr + 1) * (expf(-sigmaTR[2]*dr) / (reducedSigmaT[2]*pow(dr, 3)))) + 
+                         (rDistance * ((sigmaTR[2] * dr + 1) * (expf(-sigmaTR[2]*dr) / (reducedSigmaT[2]*pow(dr, 3)))) -
                             vDistance * (sigmaTR[2]*dv + 1) * (expf(-sigmaTR[2]*dv) / (reducedSigmaT[2]*pow(dv, 3))));
             multipleScatteringContribution += (weight * diffuse * fresnelTrans1);
         }
-        multipleScatteringContribution *= fresnelTrans0 / totalWeight;
+        multipleScatteringContribution *= 20*fresnelTrans0 / totalWeight;
         //cout << multipleScatteringContribution << endl;
     }
 

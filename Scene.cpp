@@ -19,7 +19,6 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
     int closest = -1;
     Vector3f normal;
     Vector3f intersectionPoint;
-    // TODO: Remove this at end, use BSSRDF or plane
     float diffAngle = 0;
     float specAngle = 0;
     float refractionIndex = 1.5;
@@ -52,8 +51,8 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         return;
     }
 
+    //TODO: implement soft shadows
     bool shadow = false;
-
     for(int h=0; h<objects.size(); h++)
     {
         if(closest == h)
@@ -112,7 +111,6 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
                 // TODO: Find out why this makes it better. See if it's fine without this. Mean just giving first value???
                 float r = ((float) rand() / (RAND_MAX)) * (1 - exp(-maxT * sigmaTx0.mean())) + exp(-maxT * sigmaTx0.mean());
                 t = -log(r)/sigmaTx0.mean();
-                //cout << "maxT" << maxT << "t" << t << endl;
             }
 
             Vector3f point = rayTest.origin + t * rayTest.direction;
@@ -129,13 +127,9 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             float si;
             if(!objects[closest]->intersects(lightRay, lightT, normali, c))
             {
-                //TODO: is this necessary, can I do this old way?
                c = point;
                si = 0;
                normali = maxNormal;
-               //singleScatteringContribution = {0, 0, 1};
-               //singleScatteringSamples = 1;
-               //continue;
             }
 
             si = distanceTwoPoints(point, c);
@@ -152,10 +146,9 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             }
             
             Vector3f averageNormal = (normali + normal) / 2;
-            // TODO: Check if this is right, compare at higher res.
             float wiDotN = fabs((lightRay.direction).dot(normal));
             float refractedDistance = (si * wiDotNi) / 
-                                      sqrt(1 - (1/(refractionIndex*refractionIndex) * (1- wiDotNi*wiDotNi)));
+                                      sqrt(1 - (1/(refractionIndex*refractionIndex) * (1- wiDotN*wiDotN)));
             float fresnelTrans1 = FresnelTransmission(refractionIndex, acos(wiDotNi));
 
             // Set equal as same object material.
@@ -168,14 +161,6 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
                                            * expf(-refractedDistance*sigmaTxi[1]) * expf(-s0 * sigmaTx0[1]) * radiance[1]);
             singleScatteringContribution[2] += ((sigmaS[0] * fresnelTrans0 * fresnelTrans1 * (1/sigmaTc[2])) 
                                            * expf(-refractedDistance*sigmaTxi[2]) * expf(-s0 * sigmaTx0[2]) * radiance[2]);
-            if(singleScatteringContribution[0] < 0.001)
-        {
-         cout << "1: " << maxNormal << endl;   
-         cout << "2: " << t << endl;   
-         cout << "3: " << maxT << endl;   
-         cout << "4: " << refractedDistance << endl; 
-         cout << "5: " << si << endl;  
-        }
         }
 
         singleScatteringContribution =  singleScatterWeight * singleScatteringContribution / singleScatteringSamples;
@@ -252,7 +237,6 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             multipleScatteringContribution += (weight * diffuse * fresnelTrans1);
         }
         multipleScatteringContribution *= 20*fresnelTrans0 / totalWeight;
-        //cout << multipleScatteringContribution << endl;
     }
 
     if(!shadow && !objects[closest]->isTranslucent())

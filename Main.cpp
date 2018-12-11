@@ -35,35 +35,21 @@ int main(int argc, char ** argv)
 
     // Seed random generator.
     srand(time(NULL));
-
-    /*/ Setup uniform random generator.
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_real_distribution<float> dis(0, RAND_MAX);*/
-
-    /*Vector3f sphere1Origin = {0, 1, 3};
-    Vector3f sphere1Colour = {1, 0, 0};
-    Sphere sphere1(1, sphere1Origin, sphere1Colour);
-
-    Vector3f sphere2Origin = {0, -1, 5};
-    Vector3f sphere2Colour = {0, 1, 0};
-    Sphere sphere2(1, sphere2Origin, sphere2Colour);
-
-    Vector3f sphere3Origin = {-1, -0.5, 4};
-    Vector3f sphere3Colour = {1, 0.8, 0.8};
-    Sphere sphere3(0.5, sphere3Origin, sphere3Colour);
-
-    Vector3f sphere4Origin = {1, 0, 4};
-    Vector3f sphere4Colour = {0.8, 0.6, 0.1};
-    Sphere sphere4(1, sphere4Origin, sphere4Colour);*/
     
+    //These two aren't used.
+    Eigen::Matrix2Xf tCo;
+    Eigen::MatrixXi tF;
+
     Eigen::MatrixXf V;
     Eigen::MatrixXi F;
-    igl::readOBJ("Bunny600v2.obj", V, F);
+    Eigen::Matrix3Xf VN;
+    Eigen::Matrix3Xf FN;
+    igl::readOBJ("Bunny600v2.obj", V, tCo, VN, F, tF, FN);
     Vector3f bunnyColour = {0.83, 0.79, 0.75};
     Mesh bunny(V, F, bunnyColour, true);
     bunny.sigmaS = {2.19, 2.62, 3.00};
     bunny.sigmaA = {0.0021, 0.0041, 0.0071};
+    bunny.albedo = 0.5;
 
     Plane plane = Plane({-1, 0, 0}, {1, 0, 0}, {1, 1, 1});
 
@@ -80,7 +66,6 @@ int main(int argc, char ** argv)
     {
         for(int j=0; j<height; j++)
         {
-            //cout << i << "   " << j << endl;
             // Calculate point of pixel.
             float r = camera.width * (((i + 0.5) / width) - 0.5);
             float b = camera.height * (((j + 0.5) / height) - 0.5);

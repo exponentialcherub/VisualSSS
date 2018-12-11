@@ -15,6 +15,7 @@ class Object
         Vector3f specular;
         Vector3f sigmaS;
         Vector3f sigmaA;
+        float albedo;
         
         Object(Vector3f c)
         {

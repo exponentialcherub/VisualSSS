@@ -19,10 +19,8 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
     int closest = -1;
     Vector3f normal;
     Vector3f intersectionPoint;
-    float diffAngle = 0;
-    float specAngle = 0;
     float refractionIndex = 1.5;
-    float singleScatterWeight = 1;
+    float singleScatterWeight = 5;
 
     for(int k=0; k<objects.size(); k++)
     {
@@ -83,7 +81,6 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         float fresnelTrans0 = FresnelTransmission(1/refractionIndex, theta);
         if(fresnelTrans0 < 0 )
         {
-            // Likely an issue with 3D model, so just assume 1.
             fresnelTrans0 = 1;
         }
 
@@ -127,9 +124,11 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             float si;
             if(!objects[closest]->intersects(lightRay, lightT, normali, c))
             {
+                //TODO: Perhaps just skip sample? See what this looks like and see if error is printed at all. Remember to change report.
                c = point;
                si = 0;
-               normali = maxNormal;
+               normali = normal;
+               cerr << "ERROR: Problem calculating single scattering term. Possible issus with inputted model." << endl;
             }
 
             si = distanceTwoPoints(point, c);
@@ -145,10 +144,8 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
                     radiance[k] = 0;
             }
             
-            Vector3f averageNormal = (normali + normal) / 2;
-            float wiDotN = fabs((lightRay.direction).dot(normal));
             float refractedDistance = (si * wiDotNi) / 
-                                      sqrt(1 - (1/(refractionIndex*refractionIndex) * (1- wiDotN*wiDotN)));
+                                      sqrt(1 - (1/(refractionIndex*refractionIndex) * (1- wiDotNi*wiDotNi)));
             float fresnelTrans1 = FresnelTransmission(refractionIndex, acos(wiDotNi));
 
             // Set equal as same object material.
@@ -192,7 +189,6 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         float fresnelTrans0 = FresnelTransmission(1/refractionIndex, theta);
         if(fresnelTrans0 < 0 )
         {
-            // Likely an issue with 3D model, so just assume 1.
             fresnelTrans0 = 1;
         }
 
@@ -221,9 +217,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             // Fresnel reflectance at xi
             float fresnelTrans1 = FresnelTransmission(refractionIndex, acos(fabs((lightPoint - rndPoint).dot(normali))));
 
-            // TODO: Store this in object.
-            float albedo = 0.5;
-            // TODO: fresnel reflefctance
+            float albedo = objects[closest]->albedo;
             Vector3f diffuse;
             diffuse[0] = radiance[0] * (albedo / (4 * EIGEN_PI)) * 
                          (rDistance * ((sigmaTR[0] * dr + 1) * (expf(-sigmaTR[0]*dr) / (reducedSigmaT[0]*pow(dr, 3)))) - 
@@ -236,32 +230,29 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
                             vDistance * (sigmaTR[2]*dv + 1) * (expf(-sigmaTR[2]*dv) / (reducedSigmaT[2]*pow(dv, 3))));
             multipleScatteringContribution += (weight * diffuse * fresnelTrans1);
         }
-        multipleScatteringContribution *= 20*fresnelTrans0 / totalWeight;
+        multipleScatteringContribution *= fresnelTrans0 / totalWeight;
     }
 
     if(!shadow && !objects[closest]->isTranslucent())
     {
-        //diffAngle = normal.dot(-light.dir);
-        //Vector3f reflection = light.dir - 2 * (light.dir.dot(normal)) * normal;
-        //specAngle = reflection.dot(normal);
+        
     }
-    if(diffAngle < 0)
-    {
-        diffAngle = 0;
-    }
-    if(specAngle < 0)
-    {
-        specAngle = 0;
-    }
-
-    // Calculate light here I think, getting normal from intersection method
-    /*pixel[0] = objects[closest]->colour[0] * 0.2 + diffAngle*objects[closest]->diffuse[0]*light.localI + pow(specAngle, 20)*objects[closest]->specular[0];
-    pixel[1] = objects[closest]->colour[1] * 0.2 + diffAngle*objects[closest]->diffuse[1]*light.localI + pow(specAngle, 20)*objects[closest]->specular[1];
-    pixel[2] = objects[closest]->colour[2] * 0.2 + diffAngle*objects[closest]->diffuse[2]*light.localI + pow(specAngle, 20)*objects[closest]->specular[2];*/
 
     pixel[0] = singleScatteringContribution[0] + multipleScatteringContribution[0];
     pixel[1] = singleScatteringContribution[1] + multipleScatteringContribution[1];
     pixel[2] = singleScatteringContribution[2] + multipleScatteringContribution[2];
+
+    for(int i = 0; i < 3; i++)
+    {
+        if(pixel[i] > 1)
+        {
+            pixel[i] = 1;
+        }
+        if(pixel[i] < 0)
+        {
+            pixel[i] = 0;
+        }
+    }
 }
 
 float Scene::FresnelTransmission(float n, float theta)

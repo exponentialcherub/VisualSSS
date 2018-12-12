@@ -11,6 +11,7 @@
 #include <cmath>
 #include <limits>
 #include <time.h>
+#include <thread>
 
 using namespace std;
 using namespace Eigen;
@@ -30,8 +31,8 @@ int main(int argc, char ** argv)
     }
 
     // Sub-surface scattering terms
-    int singleScatteringSamples = 50;
-    int multipleScatteringSamples = 1000;
+    int singleScatteringSamples = 20;
+    int multipleScatteringSamples = 200;
 
     // Seed random generator.
     srand(time(NULL));
@@ -40,21 +41,21 @@ int main(int argc, char ** argv)
     Eigen::Matrix2Xf tCo;
     Eigen::MatrixXi tF;
 
-    Eigen::MatrixXf V;
-    Eigen::MatrixXi F;
-    Eigen::Matrix3Xf VN;
-    Eigen::Matrix3Xf FN;
-    igl::readOBJ("Bunny600v2.obj", V, tCo, VN, F, tF, FN);
+    Eigen::MatrixXf V; // Vertices
+    Eigen::MatrixXi F; // Faces
+    Eigen::MatrixXf VN; // Vertex normals
+    Eigen::MatrixXi FN; // Face indices to vertex normals
+    igl::readOBJ("133376.obj", V, tCo, VN, F, tF, FN);
     Vector3f bunnyColour = {0.83, 0.79, 0.75};
-    Mesh bunny(V, F, bunnyColour, true);
+    Mesh bunny(V, F, VN, FN, bunnyColour, true);
     bunny.sigmaS = {2.19, 2.62, 3.00};
     bunny.sigmaA = {0.0021, 0.0041, 0.0071};
     bunny.albedo = 0.5;
 
     Plane plane = Plane({-1, 0, 0}, {1, 0, 0}, {1, 1, 1});
 
-    Camera camera = {{0, -2, 0}, 1, 2, 2, {1, 0, 0}, {0, 0, 1}, {0, -1, 0}};
-    Light light = {{0, 0, -5}, {1, 1, 1}, 2};
+    Camera camera = {{1.5, 0.3, 0}, 1, 2, 2, {0, 0, 1}, {0, 1, 0}, {1, 0, 0}};
+    Light light = {{2, 3.5, 0}, {1, 1, 1}, 1.5};
 
     Scene scene = Scene(light);
     scene.addObject(bunny);

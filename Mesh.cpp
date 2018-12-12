@@ -1,8 +1,8 @@
 #include "Mesh.h"
 #include <iostream>
-Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Vector3f c, bool isTranslucent): Object(c)
+Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Eigen::MatrixXf vn, Eigen::MatrixXi fn, Vector3f c, bool isTranslucent): Object(c)
 {
-    calculateTriangles(v, f);
+    calculateTriangles(v, f, vn, fn);
 
     translucent = isTranslucent;
 
@@ -14,7 +14,7 @@ Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Vector3f c, bool isTranslucent)
     {
         // Need to change this, shouldn't be making points smaller by 50, get updated model.
         Vector3f vertice = v.block < 1, 3 > (i, 0);// 50;
-        Vector3f translate = {0, 0, -0.5};
+        Vector3f translate = {0, -0.5, 0};
         vertice = (vertice / 40) + translate;
         if(vertice[0] < min[0])
             min[0] = vertice[0];
@@ -70,6 +70,7 @@ bool Mesh::intersects(Line ray, float & t, Vector3f & normal, Vector3f & interse
         return false;
     }
 
+    bool interpolateNormals = false;
     bool intersects = false;
     t = numeric_limits < float > ::max();
 
@@ -98,7 +99,19 @@ bool Mesh::intersects(Line ray, float & t, Vector3f & normal, Vector3f & interse
                 intersectionPoint = a;
                 intersects = true;
 
-                normal = triangles[i].plane.normal;
+                if(interpolateNormals)
+                {
+                    float totalArea = getTriangleArea(triangles[i].point1, triangles[i].point2, triangles[i].point3);
+                    float v = getTriangleArea(triangles[i].point3, triangles[i].point1, a) / totalArea;
+                    float u = getTriangleArea(triangles[i].point2, triangles[i].point3, a) / totalArea;
+
+                    normal = u * triangles[i].normal1 + v * triangles[i].normal2 + (1 - v - u) * triangles[i].normal3;
+                }
+                else
+                {
+                    normal = triangles[i].plane.normal;
+                }
+                
                 normal.normalize();
             }
         }
@@ -110,26 +123,22 @@ bool Mesh::intersects(Line ray, float & t, Vector3f & normal, Vector3f & interse
 /**
  * Adds all triangles to list, this assumes that the faces are given in sets of 3 vertices.
  **/
-void Mesh::calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces) {
+void Mesh::calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces, Eigen::MatrixXf vertexNormals, Eigen::MatrixXi faceNormals) {
     noTriangles = faces.rows();
-    for (int i = 0; i < faces.rows(); i++) {
+    for (int i = 0; i < noTriangles; i++) {
         // Assumes faces are given in sets of four vertices.
         // Triangle 1
-        Vector3f translate = {0, 0, -0.5};
-        Vector3f vertice1 = vertices.block < 1, 3 > (faces.coeff(i, 0), 0);// 50;
-        Vector3f vertice2 = vertices.block < 1, 3 > (faces.coeff(i, 1), 0);// 50;
-        Vector3f vertice3 = vertices.block < 1, 3 > (faces.coeff(i, 2), 0);// 50;
+        Vector3f translate = {0, -0.5, 0};
+        Vector3f vertice1 = vertices.block < 1, 3 > (faces.coeff(i, 0), 0);
+        Vector3f vertice2 = vertices.block < 1, 3 > (faces.coeff(i, 1), 0);
+        Vector3f vertice3 = vertices.block < 1, 3 > (faces.coeff(i, 2), 0);
+        Vector3f normal1 = vertexNormals.block < 1, 3 > (faceNormals.coeff(i, 0), 0);
+        Vector3f normal2 = vertexNormals.block < 1, 3 > (faceNormals.coeff(i, 1), 0);
+        Vector3f normal3 = vertexNormals.block < 1, 3 > (faceNormals.coeff(i, 2), 0);
+
         vertice1 = (vertice1 / 40) + translate;
         vertice2 = (vertice2 / 40) + translate;
         vertice3 = (vertice3 / 40) + translate;
-        // Rotate bunny towards camera
-        // Ideally don't do this or resizing above
-        /*Vector3f temp = {(float)(vertice1[2]-1), vertice1[1], -vertice1[0]};
-        vertice1 = temp;
-        temp = {(float)(vertice2[2]-1), vertice2[1], -vertice2[0]};
-        vertice2 = temp;
-        temp = {(float)(vertice3[2]-1), vertice3[1], -vertice3[0]};
-        vertice3 = temp;*/
 
         Vector3f vector1 = vertice2 - vertice1;
         Vector3f vector2 = vertice3 - vertice2;
@@ -140,7 +149,10 @@ void Mesh::calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces) {
             plane,
             vertice1,
             vertice2,
-            vertice3
+            vertice3,
+            normal1,
+            normal2,
+            normal3
         );
 
         triangles.push_back(triangle);
@@ -169,4 +181,13 @@ Vector3f Mesh::randomPoint(Vector3f &normal)
 float Mesh::getBoundingBoxIntersect(Line ray)
 {
     return boundingBox.getIntersectT(ray);
+}
+
+float Mesh::getTriangleArea(Vector3f point1, Vector3f point2, Vector3f point3)
+{
+    Vector3f ab = point1 - point2;
+    Vector3f ac = point1 - point3;
+    Vector3f cross = ab.cross(ac);
+
+    return 0.5 * sqrt(pow(cross[0], 2) + pow(cross[1], 2) + pow(cross[2], 2));
 }

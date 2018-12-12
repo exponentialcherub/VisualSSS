@@ -21,7 +21,7 @@ class Mesh : public Object
     bool translucent;
 
     public:
-        Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Vector3f c, bool isTranslucent);
+        Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Eigen::MatrixXf vn, Eigen::MatrixXi fn, Vector3f c, bool isTranslucent);
         
         bool intersects(Line ray, float &t);
         bool intersects(Line ray, float &t, Vector3f &normal, Vector3f &intersectionPoint) override;
@@ -30,5 +30,6 @@ class Mesh : public Object
         Vector3f randomPoint(Vector3f &normal);
 
     private:
-        void calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces);
+        void calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces, Eigen::MatrixXf vn, Eigen::MatrixXi fn);
+        float getTriangleArea(Vector3f point1, Vector3f point2, Vector3f point3);
 };

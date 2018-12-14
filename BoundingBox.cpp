@@ -1,6 +1,8 @@
 #include "BoundingBox.h"
 
-// Calculates if a ray instersects with bounding cube.
+/**Calculates if a ray instersects with bounding cube.
+*  Based on code found here: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection.
+**/ 
 bool BoundingBox::intersects(Line ray)
 {
     // If ray originates in the bounding box then it will always intersect with the cube.
@@ -59,20 +61,27 @@ bool BoundingBox::intersects(Line ray)
     return true;
 }
 
+/**
+ * Gets the t intersect of a ray with the bounding box. All plane faces are parallel with world axis so we know how to
+ * define planes.
+ **/
 float BoundingBox::getIntersectT(Line ray)
 {
     float tValues[6];
 
+    // Intersection with x plane.
     Plane planeMinX(min, {1, 0, 0}, {0, 0, 0});
     Plane planeMaxX(max, {1, 0, 0}, {0, 0, 0});
     planeMinX.intersects(ray, tValues[0]);
     planeMaxX.intersects(ray, tValues[1]);
 
+    // Intersection with y plane.
     Plane planeMinY(min, {0, 1, 0}, {0, 0, 0});
     Plane planeMaxY(max, {0, 1, 0}, {0, 0, 0});
     planeMinY.intersects(ray, tValues[2]);
     planeMaxY.intersects(ray, tValues[3]);
 
+    // Intersection with z plane.
     Plane planeMinZ(min, {0, 0, 1}, {0, 0, 0});
     Plane planeMaxZ(max, {0, 0, 1}, {0, 0, 0});
     planeMinZ.intersects(ray, tValues[4]);
@@ -81,6 +90,7 @@ float BoundingBox::getIntersectT(Line ray)
     float t = std::numeric_limits<float>::max();
     for(int i=0; i<6; i++)
     {
+        // Get smallest value (closest intersection).
         if(tValues[i] < t && tValues[i] > 0)
         {
             t = tValues[i];

@@ -14,6 +14,10 @@ void Scene::addObject(Object &object)
     objects.push_back(&object);
 }
 
+/**
+ * Traces a ray through the scene, finding what object it intersects with and calculates the BSSRDF approximation for that
+ * point setting the pixel value at the end. Here we assume there is only one light.
+ **/
 void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int multipleScatteringSamples)
 {
     float t = numeric_limits<float>::max();
@@ -24,6 +28,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
     float singleScatterWeight = 1;
     float multipleScatterWeight = 1;
 
+    // Find closest object.
     for(int k=0; k<objects.size(); k++)
     {
         float tNew = 0;
@@ -43,6 +48,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         }
     }
 
+    // If no intersection set pixel to background colour and return.
     if(closest == -1)
     {
         pixel[0] = background[0];
@@ -55,6 +61,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
     Vector3f singleScatteringContribution = {0, 0, 0};
     if(objects[closest]->isTranslucent())
     {
+        // Get coefficients.
         Vector3f sigmaTx0 = objects[closest]->getSigmaT();
         float sigmaTx0Mean = (sigmaTx0[0] + sigmaTx0[1] + sigmaTx0[2])/3;
         Vector3f sigmaS = objects[closest]->sigmaS;
@@ -73,6 +80,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         Vector3f maxPoint;
         if(!objects[closest]->intersects(rayTest, maxT, maxNormal, maxPoint))
         {
+            // If not intersection just use bounding box intersection as max t.
             maxT = objects[closest]->getBoundingBoxIntersect(ray);
         }
 
@@ -87,7 +95,6 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
                     t = maxT;
                     break;
                 }
-                // TODO: Find out why this makes it better. See if it's fine without this. Mean just giving first value???
                 float r = ((float) rand() / (RAND_MAX)) * (1 - exp(-maxT * sigmaTx0.mean())) + exp(-maxT * sigmaTx0.mean());
                 t = -log(r)/sigmaTx0.mean();
             }
@@ -103,6 +110,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             float lightT;
             Vector3f normali;
             Vector3f c;
+            // Distance from intersection point to sample.
             float si;
             int face;
             if(!objects[closest]->intersects(lightRay, lightT, normali, c))
@@ -114,7 +122,9 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
 
                continue;
             }
+
             lightRay.origin = c + 0.0001 * lightRay.direction;
+            // If shadow don't calculate.
             if(shadowCheck(lightRay))
             {
                 continue;
@@ -126,9 +136,11 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             
             // Find distance from light to object intersection.
             float distance = distanceTwoPoints(c, lightPoint);
+            // Calculate light intensity.
             Vector3f radiance = (light.emittedLight * light.getArea()) / (distance * distance);
             for(int k = 0; k < 3; k++)
             {
+                // Just in case.
                 if(radiance[k] < 0)
                     radiance[k] = 0;
             }
@@ -141,6 +153,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             Vector3f sigmaTxi = sigmaTx0;
             Vector3f sigmaTc = sigmaTx0 + (fabs(normali.dot(ray.direction)) / wiDotNi) * sigmaTxi;
             
+            // Calculate using single scattering equation.
             singleScatteringContribution[0] += ((sigmaS[0] * fresnelTrans0 * fresnelTrans1 * (1/sigmaTc[0])) 
                                            * expf(-refractedDistance*sigmaTxi[0]) * expf(-s0 * sigmaTx0[0]) * radiance[0]);
             singleScatteringContribution[1] += ((sigmaS[0] * fresnelTrans0 * fresnelTrans1 * (1/sigmaTc[1])) 
@@ -156,6 +169,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
     Vector3f multipleScatteringContribution = {0, 0, 0};
     if(objects[closest]->isTranslucent())
     {
+        // Get coefficients.
         Vector3f sigmaTx0 = objects[closest]->getSigmaT();
         Vector3f sigmaTR = objects[closest]->getSigmaTR();
         float sigmaTRMean = (sigmaTR[0] + sigmaTR[1] + sigmaTR[2]) / 3;
@@ -206,6 +220,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             Vector3f radiance = (light.emittedLight * light.getArea()) / (lightDistance * lightDistance);
             for(int k = 0; k < 3; k++)
             {
+                // Just in case.
                 if(radiance[k] < 0)
                     radiance[k] = 0;
             }
@@ -215,6 +230,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
 
             float albedo = objects[closest]->albedo;
             Vector3f diffuse;
+            // Diffusion approximation equation.
             diffuse[0] = radiance[0] * (albedo / (4 * EIGEN_PI)) * 
                          (rDistance * ((sigmaTR[0] * dr + 1) * (expf(-sigmaTR[0]*dr) / (pow(dr, 3)))) -
                             vDistance * (sigmaTR[0]*dv + 1) * (expf(-sigmaTR[0]*dv) / (pow(dv, 3))));
@@ -233,6 +249,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
     pixel[1] = singleScatteringContribution[1] + multipleScatteringContribution[1];
     pixel[2] = singleScatteringContribution[2] + multipleScatteringContribution[2];
 
+    // If it exceeds max intensity, set to max.
     for(int i = 0; i < 3; i++)
     {
         if(pixel[i] > 1)
@@ -246,11 +263,17 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
     }
 }
 
+/**
+ * Gets the fresnel transmission for refraction index n and angle of incidence.
+ **/
 float Scene::FresnelTransmission(float n, float theta)
 {
     return 1 - FresnelReflectance(n, theta);
 }
 
+/**
+ * Gets the fresnel reflectance for refraction index n and angle of incidence.
+ **/
 float Scene::FresnelReflectance(float n, float theta)
 {
     float cosi = cos(theta);
@@ -263,14 +286,7 @@ float Scene::FresnelReflectance(float n, float theta)
 	float Rs = (n * cosi - cost)/(n * cosi + cost);
 	Rs *= Rs;
 	float Rt = (n * cost - cosi)/(n * cost + cosi);
-	Rt *= Rt;
-	if(isnan(Rs)){
-		Rs = 0;
-	}
-	if(isnan(Rt)){
-		Rt = 0;
-	}
-	return (Rt + Rs)/2;
+	return (Rt*Rt + Rs*Rs)/2;
 }
 
 float Scene::distanceTwoPoints(Vector3f point1, Vector3f point2)

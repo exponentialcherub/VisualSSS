@@ -7,6 +7,9 @@
 
 using namespace Eigen;
 
+/**
+ * Object base class.
+ **/
 class Object
 {
     public:

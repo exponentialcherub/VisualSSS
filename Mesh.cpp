@@ -1,5 +1,6 @@
 #include "Mesh.h"
 #include <iostream>
+
 Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Eigen::MatrixXf vn, Eigen::MatrixXi fn, Vector3f c, bool isTranslucent): Object(c)
 {
     calculateTriangles(v, f, vn, fn);
@@ -12,8 +13,8 @@ Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Eigen::MatrixXf vn, Eigen::Matr
     Vector3f max = {minLimit, minLimit, minLimit};
     for(int i=0; i< v.rows(); i++)
     {
-        // Need to change this, shouldn't be making points smaller by 50, get updated model.
-        Vector3f vertice = v.block < 1, 3 > (i, 0);// 50;
+        Vector3f vertice = v.block < 1, 3 > (i, 0);
+        // Positions bunny in front of camera.
         Vector3f translate = {0, -0.5, 0};
         vertice = (vertice / 40) + translate;
         if(vertice[0] < min[0])
@@ -32,6 +33,9 @@ Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Eigen::MatrixXf vn, Eigen::Matr
     boundingBox.setValues(min, max);
 }
 
+/**
+ * Checks if a line intersects with the mesh and returns the t value for the closest intersection point.
+ **/
 bool Mesh::intersects(Line ray, float & t)
 {
     if(!boundingBox.intersects(ray))
@@ -62,6 +66,10 @@ bool Mesh::intersects(Line ray, float & t)
     return intersects;
 }
 
+/**
+ * Checks if a line intersects with the mesh and returns the t value for the closest intersection point.
+ * This function also returns the normal of the face intersected with and the intersection point.
+ **/
 bool Mesh::intersects(Line ray, float & t, Vector3f & normal, Vector3f & intersectionPoint)
 {
     if(!boundingBox.intersects(ray))
@@ -135,6 +143,7 @@ void Mesh::calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces, E
         Vector3f normal2 = vertexNormals.block < 1, 3 > (faceNormals.coeff(i, 1), 0);
         Vector3f normal3 = vertexNormals.block < 1, 3 > (faceNormals.coeff(i, 2), 0);
 
+        // Repositions bunny used so it fits in front of camera.
         vertice1 = (vertice1 / 40) + translate;
         vertice2 = (vertice2 / 40) + translate;
         vertice3 = (vertice3 / 40) + translate;
@@ -163,8 +172,9 @@ bool Mesh::isTranslucent()
     return translucent;
 }
 
-// Found formula for uniform random point in triangle here, 
-// https://stackoverflow.com/questions/19654251/random-point-inside-triangle-inside-java.
+/** Found formula for uniform random point in triangle here, 
+ * https://stackoverflow.com/questions/19654251/random-point-inside-triangle-inside-java.
+**/
 Vector3f Mesh::randomPoint(Vector3f &normal)
 {
     float r1 = rand() / RAND_MAX;

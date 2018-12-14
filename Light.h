@@ -5,6 +5,9 @@
 
 using namespace Eigen;
 
+/**
+ * Defines a light by a position, emitted light and radius. Making it a spherical light casting in all directions.
+ **/
 class Light
 {
     public:
@@ -12,6 +15,9 @@ class Light
         Vector3f emittedLight;
         float radius;
 
+        /**
+         * Gets a random point on the surface of the sphere.
+         **/
         Vector3f randomPoint()
         {
             Vector3f point;
@@ -22,6 +28,9 @@ class Light
             return point * radius + origin;
         }
 
+        /**
+         * Area of the sphere.
+         **/
         float getArea()
         {
             return (4/3) * EIGEN_PI * radius * radius * radius;

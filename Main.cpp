@@ -20,6 +20,7 @@ int main(int argc, char ** argv)
 {
     int width = 150;
     int height = 150;
+    // Allocate memory to canvas.
     float *** canvas = (float ***) malloc(width * sizeof(float **));
     for(int i = 0; i < width; i++)
     {
@@ -57,18 +58,12 @@ int main(int argc, char ** argv)
     plane1.sigmaA = {0.0021, 0.0041, 0.0071};
     plane1.albedo = 0.5;
 
-    Plane plane2 = Plane({-2, 0, 0}, {1, 0, 0}, {1, 1, 1}, 1);
-    plane2.sigmaS = {2.18, 2.62, 3.00};
-    plane2.sigmaA = {0.0021, 0.0041, 0.0071};
-    plane2.albedo = 0.5;
-
     Camera camera = {{1.5, 0.3, 0}, 1, 2, 2, {0, 0, 1}, {0, 1, 0}, {1, 0, 0}};
     Light light = {{0, 1.5, 2}, {1, 1, 1}, 1.2};
 
     Scene scene = Scene(light, false);
     scene.addObject(bunny);
     scene.addObject(plane1);
-    //scene.addObject(plane2);
     
     int workCount = 0;
 
@@ -91,10 +86,12 @@ int main(int argc, char ** argv)
             Vector3f dir = pixelPoint - camera.focalPoint;
             dir.normalize();
             
+            // Ray to cast through scene.
             Line ray = {camera.focalPoint, dir};
 
             scene.rayTrace(ray, canvas[i][j], singleScatteringSamples, multipleScatteringSamples);
 
+            // Gives a simple percentage of work done every 100 pixels.
             if(++workCount % 100 == 0)
             {
                 cout << (float) (workCount * 100) / (width*height) << "%" << endl;  

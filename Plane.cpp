@@ -7,8 +7,12 @@ Plane::Plane(Vector3f p, Vector3f n, Vector3f c, float theRange) : Object(c)
     range = theRange;
 }
 
+/**
+ * Finds if line intersects with plane, returning t value.
+ **/
 bool Plane::intersects(Line ray, float &t)
 {
+    // If line is not parallel, then it intersects.
     if(ray.direction.dot(normal) == 0)
     {
         return false;
@@ -19,8 +23,12 @@ bool Plane::intersects(Line ray, float &t)
     return true;
 }
 
+/**
+ * Finds if line intersects with plane, returning t value, normal and intersection point.
+ **/
 bool Plane::intersects(Line ray, float &t, Vector3f &normalRet, Vector3f &intersectionPoint)
 {
+    // If line is not parallel, then it intersects.
     if(ray.direction.dot(normal) == 0)
     {
         return false;
@@ -38,6 +46,9 @@ bool Plane::isTranslucent()
     return true;
 }
 
+/**
+ * Gets a random point on plane within a certain range.
+ **/
 Vector3f Plane::randomPoint(Vector3f &theNormal)
 {
     Vector3f ret;
@@ -81,5 +92,6 @@ Vector3f Plane::randomPoint(Vector3f &theNormal)
 
 float Plane::getBoundingBoxIntersect(Line ray)
 {
+    // No bounding box, so just return 1. This is used for edge cases so should not be an issue in the case of a plane.
     return 1;
 }

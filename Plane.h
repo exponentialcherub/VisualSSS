@@ -1,8 +1,10 @@
 #pragma once
 
-#include "Face.h"
 #include "Object.h"
 
+/**
+ * Defines a plane with a point and a normal.
+ **/
 class Plane : public Object
 {
     public:

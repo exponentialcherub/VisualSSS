@@ -2,6 +2,9 @@
 
 using namespace Eigen;
 
+/**
+ * The view of the image, defined by directional vectors and position.
+ **/
 class Camera
 {
     public:

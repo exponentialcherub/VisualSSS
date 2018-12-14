@@ -1,4 +1,3 @@
-#include "Face.h"
 #include "Object.h"
 #include "Light.h"
 #include <vector>
@@ -9,6 +8,9 @@
 
 using namespace std;
 
+/**
+ * Defines what is contained in the scene, objects, light, etc. And provides functionality to trace a ray through the scene.
+ **/
 class Scene
 {
     vector<Object*> objects;

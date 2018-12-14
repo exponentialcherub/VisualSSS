@@ -1,9 +1,11 @@
-#include "Face.h"
 #include "Object.h"
 #include <Eigen/Core>
 
 using namespace Eigen;
 
+/**
+ * Defines a sphere with a radius and origin.
+ **/
 class Sphere : public Object
 {
     float radius;

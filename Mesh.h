@@ -1,4 +1,3 @@
-#include "Face.h"
 #include "Object.h"
 #include "Plane.h"
 #include "Triangle.h"
@@ -12,6 +11,10 @@
 using namespace Eigen;
 using namespace std;
 
+/**
+ * A 3D model defined by a list of vertices, faces and normals. Includes functions for finding intersections with the mesh and finding
+ * random points.
+ **/
 class Mesh : public Object
 {
     vector<Triangle> triangles;

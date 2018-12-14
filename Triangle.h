@@ -1,10 +1,12 @@
 #include "Plane.h"
-#include "Face.h"
 #include <Eigen/Dense>
 #include <math.h>
 
 using namespace Eigen;
 
+/**
+ * Defines a triangle, used as a face on a mesh.
+ **/
 class Triangle
 {
     public:

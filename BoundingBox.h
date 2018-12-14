@@ -6,6 +6,9 @@
 
 using namespace Eigen;
 
+/**
+ * Box which contains a mesh, used to optmise rendering.
+ **/
 class BoundingBox
 {
     public:

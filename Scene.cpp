@@ -284,8 +284,13 @@ float Scene::FresnelReflectance(float n, float theta)
     }
     float cost = sqrtf(max(0.f, 1 - sint * sint));
 	float Rs = (n * cosi - cost)/(n * cosi + cost);
-	Rs *= Rs;
 	float Rt = (n * cost - cosi)/(n * cost + cosi);
+	if(isnan(Rs)){
+		Rs = 0;
+	}
+	if(isnan(Rt)){
+		Rt = 0;
+	}
 	return (Rt*Rt + Rs*Rs)/2;
 }
 

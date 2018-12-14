@@ -19,7 +19,7 @@ bool Plane::intersects(Line ray, float &t)
     return true;
 }
 
-bool Plane::intersects(Line ray, float &t, Vector3f &normalRet, Vector3f &intersectionPoint)
+bool Plane::intersects(Line ray, float &t, Vector3f &normalRet, Vector3f &intersectionPoint, int &face)
 {
     if(ray.direction.dot(normal) == 0)
     {
@@ -38,7 +38,7 @@ bool Plane::isTranslucent()
     return true;
 }
 
-Vector3f Plane::randomPoint(Vector3f &theNormal)
+Vector3f Plane::randomPoint(Vector3f &theNormal, int face)
 {
     Vector3f ret;
     float d = -normal[0]*point[0] - normal[1]*point[1] - normal[2]*point[2];

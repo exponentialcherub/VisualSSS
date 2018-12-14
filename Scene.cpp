@@ -20,9 +20,10 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
     int closest = -1;
     Vector3f normal;
     Vector3f intersectionPoint;
+    int face;
     float refractionIndex = 1.5;
     float singleScatterWeight = 1;
-    float multipleScatterWeight = 1;
+    float multipleScatterWeight = 10;
 
     for(int k=0; k<objects.size(); k++)
     {
@@ -30,7 +31,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         Vector3f newNormal;
         Vector3f newIntersectionPoint;
 
-        if(objects[k]->intersects(ray, tNew, newNormal, newIntersectionPoint))
+        if(objects[k]->intersects(ray, tNew, newNormal, newIntersectionPoint, face))
         {
             // Check t > 0 to be sure.
             if(tNew < t && tNew > 0)
@@ -71,7 +72,8 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         float maxT;
         Vector3f maxNormal;
         Vector3f maxPoint;
-        if(!objects[closest]->intersects(rayTest, maxT, maxNormal, maxPoint))
+        int face;
+        if(!objects[closest]->intersects(rayTest, maxT, maxNormal, maxPoint, face))
         {
             maxT = objects[closest]->getBoundingBoxIntersect(ray);
         }
@@ -104,9 +106,9 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             Vector3f normali;
             Vector3f c;
             float si;
-            if(!objects[closest]->intersects(lightRay, lightT, normali, c))
+            int face;
+            if(!objects[closest]->intersects(lightRay, lightT, normali, c, face))
             {
-                //TODO: Perhaps just skip sample? See what this looks like and see if error is printed at all. Remember to change report.
                c = point;
                si = 0;
                normali = normal;
@@ -162,8 +164,6 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         Vector3f reducedSigmaT = objects[closest]->getReducedSigmaT();
         float reducedSigmaTMean = (reducedSigmaT[0] + reducedSigmaT[1] + reducedSigmaT[2]) / 3;
 
-        
-
         // Fresnel reflectance at x0
         float theta = acosf(normal.dot(-ray.direction));
         float fresnelTrans0 = FresnelTransmission(refractionIndex, theta);
@@ -177,7 +177,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         {
             Vector3f lightPoint = light.randomPoint();
             Vector3f normali;
-            Vector3f rndPoint = objects[closest]->randomPoint(normali);
+            Vector3f rndPoint = objects[closest]->randomPoint(normali, face);
 
             // Shadow check
             Line lightRay = {rndPoint + 0.0001 * (lightPoint - rndPoint), (lightPoint - rndPoint)};
@@ -255,7 +255,6 @@ float Scene::FresnelTransmission(float n, float theta)
 
 float Scene::FresnelReflectance(float n, float theta)
 {
-    // ALSO CHANGE THIS COPIED LOLOLOLOL
     float cosi = cos(theta);
     float sint = 1 / n * sqrtf(1 - cosi * cosi); 
     if(sint > 1)

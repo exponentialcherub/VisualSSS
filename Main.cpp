@@ -18,8 +18,8 @@ using namespace Eigen;
 
 int main(int argc, char ** argv)
 {
-    int width = 100;
-    int height = 100;
+    int width = 200;
+    int height = 200;
     float *** canvas = (float ***) malloc(width * sizeof(float **));
     for(int i = 0; i < width; i++)
     {
@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
 
     // Sub-surface scattering terms
     int singleScatteringSamples = 20;
-    int multipleScatteringSamples = 200;
+    int multipleScatteringSamples = 100;
 
     // Seed random generator.
     srand(time(NULL));
@@ -63,9 +63,9 @@ int main(int argc, char ** argv)
     plane2.albedo = 0.5;
 
     Camera camera = {{1.5, 0.3, 0}, 1, 2, 2, {0, 0, 1}, {0, 1, 0}, {1, 0, 0}};
-    Light light = {{0, 2, -2}, {1, 1, 1}, 1.2};
+    Light light = {{0, 1.5, -2}, {1, 1, 1}, 1.2};
 
-    Scene scene = Scene(light, false);
+    Scene scene = Scene(light, true);
     scene.addObject(bunny);
     scene.addObject(plane1);
     //scene.addObject(plane2);

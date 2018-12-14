@@ -23,10 +23,10 @@ class Object
             diffuse = colour * 1;
             specular = {0.5, 0.5, 0.5};
         }
-        virtual bool intersects(Line ray, float &t, Vector3f &normal, Vector3f &intersectionPoint) = 0;
+        virtual bool intersects(Line ray, float &t, Vector3f &normal, Vector3f &intersectionPoint, int &face) = 0;
         virtual bool intersects(Line ray, float &t) = 0;
         virtual bool isTranslucent() = 0;
-        virtual Vector3f randomPoint(Vector3f &normal) = 0;
+        virtual Vector3f randomPoint(Vector3f &normal, int face) = 0;
         virtual float getBoundingBoxIntersect(Line ray) = 0;
 
         Vector3f getSigmaT()

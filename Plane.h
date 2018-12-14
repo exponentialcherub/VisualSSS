@@ -15,8 +15,8 @@ class Plane : public Object
         Plane(Vector3f p, Vector3f n, Vector3f c, float range = 100);
 
         bool intersects(Line ray, float &t);
-        bool intersects(Line ray, float &t, Vector3f &normalRet, Vector3f &intersectionPoint);
+        bool intersects(Line ray, float &t, Vector3f &normalRet, Vector3f &intersectionPoint, int &face);
         bool isTranslucent();
-        Vector3f randomPoint(Vector3f &normal);
+        Vector3f randomPoint(Vector3f &normal, int face);
         float getBoundingBoxIntersect(Line ray);
 };

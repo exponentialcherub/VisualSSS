@@ -28,7 +28,7 @@ bool Sphere::intersects(Line ray, float & t)
     return false;
 }
 
-bool Sphere::intersects(Line ray, float & t, Vector3f & normal, Vector3f & intersectionPoint) 
+bool Sphere::intersects(Line ray, float & t, Vector3f & normal, Vector3f & intersectionPoint, int &face) 
 {
     Line rayObjectSpace = ray;
     rayObjectSpace.origin -= origin;
@@ -63,7 +63,7 @@ bool Sphere::isTranslucent()
     return false;
 }
 
-Vector3f Sphere::randomPoint(Vector3f &normal)
+Vector3f Sphere::randomPoint(Vector3f &normal, int face)
 {
     // TODO
     Vector3f point;

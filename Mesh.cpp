@@ -29,7 +29,6 @@ Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Eigen::MatrixXf vn, Eigen::Matr
         if(vertice[2] > max[2])
             max[2] = vertice[2];
     }
-
     boundingBox.setValues(min, max);
 }
 

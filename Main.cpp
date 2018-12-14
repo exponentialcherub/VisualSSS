@@ -18,8 +18,8 @@ using namespace Eigen;
 
 int main(int argc, char ** argv)
 {
-    int width = 400;
-    int height = 400;
+    int width = 100;
+    int height = 100;
     float *** canvas = (float ***) malloc(width * sizeof(float **));
     for(int i = 0; i < width; i++)
     {
@@ -52,14 +52,23 @@ int main(int argc, char ** argv)
     bunny.sigmaA = {0.0021, 0.0041, 0.0071};
     bunny.albedo = 0.5;
 
-    Plane plane = Plane({-1, 0, 0}, {1, 0, 0}, {1, 1, 1});
+    Plane plane1 = Plane({0, -0.52, 0}, {0, 1, 0}, {1, 1, 1}, 1);
+    plane1.sigmaS = {2.17, 2.62, 3.00};
+    plane1.sigmaA = {0.0021, 0.0041, 0.0071};
+    plane1.albedo = 0.5;
+
+    Plane plane2 = Plane({-2, 0, 0}, {1, 0, 0}, {1, 1, 1}, 1);
+    plane2.sigmaS = {2.18, 2.62, 3.00};
+    plane2.sigmaA = {0.0021, 0.0041, 0.0071};
+    plane2.albedo = 0.5;
 
     Camera camera = {{1.5, 0.3, 0}, 1, 2, 2, {0, 0, 1}, {0, 1, 0}, {1, 0, 0}};
-    Light light = {{2, 3.5, 0}, {1, 1, 1}, 1.5};
+    Light light = {{0, 2, -2}, {1, 1, 1}, 1.2};
 
-    Scene scene = Scene(light);
+    Scene scene = Scene(light, false);
     scene.addObject(bunny);
-    //scene.addObject(plane);
+    scene.addObject(plane1);
+    //scene.addObject(plane2);
     
     int workCount = 0;
 
@@ -82,7 +91,7 @@ int main(int argc, char ** argv)
             Vector3f dir = pixelPoint - camera.focalPoint;
             dir.normalize();
             
-            Line ray = {pixelPoint, dir};
+            Line ray = {camera.focalPoint, dir};
 
             scene.rayTrace(ray, canvas[i][j], singleScatteringSamples, multipleScatteringSamples);
 

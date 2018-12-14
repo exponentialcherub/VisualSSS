@@ -62,7 +62,7 @@ bool Mesh::intersects(Line ray, float & t)
     return intersects;
 }
 
-bool Mesh::intersects(Line ray, float & t, Vector3f & normal, Vector3f & intersectionPoint, int &face)
+bool Mesh::intersects(Line ray, float & t, Vector3f & normal, Vector3f & intersectionPoint)
 {
     if(!boundingBox.intersects(ray))
     {
@@ -165,19 +165,11 @@ bool Mesh::isTranslucent()
 
 // Found formula for uniform random point in triangle here, 
 // https://stackoverflow.com/questions/19654251/random-point-inside-triangle-inside-java.
-Vector3f Mesh::randomPoint(Vector3f &normal, int face)
+Vector3f Mesh::randomPoint(Vector3f &normal)
 {
     float r1 = rand() / RAND_MAX;
     float r2 = rand() / RAND_MAX;
-    int r3;
-    if(face == -1)
-    {
-        r3 = rand() % noTriangles;
-    }
-    else
-    {
-        r3 = face;
-    }
+    int r3 = rand() % noTriangles;
 
     Triangle tri = triangles[r3];
     Vector3f point = (1 - sqrt(r1)) * tri.point1 + (sqrt(r1)*(1-r2)) * tri.point2 + (sqrt(r1)*r2) * tri.point3;

@@ -13,8 +13,8 @@ class Sphere : public Object
         Sphere(float r, Vector3f o, Vector3f c);
 
         bool intersects(Line ray, float &t);
-        bool intersects(Line ray, float &t, Vector3f &normal, Vector3f &intersectionPoint, int &face) override;
+        bool intersects(Line ray, float &t, Vector3f &normal, Vector3f &intersectionPoint) override;
         bool isTranslucent();
-        Vector3f randomPoint(Vector3f &normal, int face);
+        Vector3f randomPoint(Vector3f &normal);
         float getBoundingBoxIntersect(Line ray) override;
 };

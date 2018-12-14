@@ -20,10 +20,9 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
     int closest = -1;
     Vector3f normal;
     Vector3f intersectionPoint;
-    int face;
     float refractionIndex = 1.5;
     float singleScatterWeight = 1;
-    float multipleScatterWeight = 10;
+    float multipleScatterWeight = 1;
 
     for(int k=0; k<objects.size(); k++)
     {
@@ -31,7 +30,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         Vector3f newNormal;
         Vector3f newIntersectionPoint;
 
-        if(objects[k]->intersects(ray, tNew, newNormal, newIntersectionPoint, face))
+        if(objects[k]->intersects(ray, tNew, newNormal, newIntersectionPoint))
         {
             // Check t > 0 to be sure.
             if(tNew < t && tNew > 0)
@@ -72,8 +71,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         float maxT;
         Vector3f maxNormal;
         Vector3f maxPoint;
-        int face;
-        if(!objects[closest]->intersects(rayTest, maxT, maxNormal, maxPoint, face))
+        if(!objects[closest]->intersects(rayTest, maxT, maxNormal, maxPoint))
         {
             maxT = objects[closest]->getBoundingBoxIntersect(ray);
         }
@@ -107,7 +105,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             Vector3f c;
             float si;
             int face;
-            if(!objects[closest]->intersects(lightRay, lightT, normali, c, face))
+            if(!objects[closest]->intersects(lightRay, lightT, normali, c))
             {
                c = point;
                si = 0;
@@ -177,7 +175,7 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
         {
             Vector3f lightPoint = light.randomPoint();
             Vector3f normali;
-            Vector3f rndPoint = objects[closest]->randomPoint(normali, face);
+            Vector3f rndPoint = objects[closest]->randomPoint(normali);
 
             // Shadow check
             Line lightRay = {rndPoint + 0.0001 * (lightPoint - rndPoint), (lightPoint - rndPoint)};

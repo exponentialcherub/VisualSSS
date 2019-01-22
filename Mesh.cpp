@@ -31,6 +31,7 @@ Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Eigen::MatrixXf vn, Eigen::Matr
             max[2] = vertice[2];
     }
     boundingBox.setValues(min, max);
+    //kdNode->boundingBox = boundingBox;
 }
 
 /**
@@ -39,6 +40,16 @@ Mesh::Mesh(Eigen::MatrixXf v, Eigen::MatrixXi f, Eigen::MatrixXf vn, Eigen::Matr
 bool Mesh::intersects(Line ray, float & t)
 {
     if(!boundingBox.intersects(ray))
+    {
+        //return false;
+    }
+    Vector3f intersectionPoint;
+    Vector3f normal;
+    if(kdNode->hit(kdNode, ray, t, t, intersectionPoint, normal))
+    {
+        return true;
+    }
+    else
     {
         return false;
     }
@@ -73,6 +84,14 @@ bool Mesh::intersects(Line ray, float & t)
 bool Mesh::intersects(Line ray, float & t, Vector3f & normal, Vector3f & intersectionPoint)
 {
     if(!boundingBox.intersects(ray))
+    {
+        //return false;
+    }
+    if(kdNode->hit(kdNode, ray, t, t, intersectionPoint, normal))
+    {
+        return true;
+    }
+    else
     {
         return false;
     }
@@ -132,10 +151,11 @@ bool Mesh::intersects(Line ray, float & t, Vector3f & normal, Vector3f & interse
  **/
 void Mesh::calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces, Eigen::MatrixXf vertexNormals, Eigen::MatrixXi faceNormals) {
     noTriangles = faces.rows();
+    vector<Triangle*>* tris = new vector<Triangle*>(); 
     for (int i = 0; i < noTriangles; i++) {
         // Assumes faces are given in sets of four vertices.
         // Triangle 1
-        Vector3f translate = {0, -0.5, 0};
+        Vector3f translate = {0, 0, -1};
         Vector3f vertice1 = vertices.block < 1, 3 > (faces.coeff(i, 0), 0);
         Vector3f vertice2 = vertices.block < 1, 3 > (faces.coeff(i, 1), 0);
         Vector3f vertice3 = vertices.block < 1, 3 > (faces.coeff(i, 2), 0);
@@ -144,16 +164,16 @@ void Mesh::calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces, E
         Vector3f normal3 = vertexNormals.block < 1, 3 > (faceNormals.coeff(i, 2), 0);
 
         // Repositions bunny used so it fits in front of camera.
-        vertice1 = (vertice1 / 40) + translate;
-        vertice2 = (vertice2 / 40) + translate;
-        vertice3 = (vertice3 / 40) + translate;
+        vertice1 = (vertice1 / 80) + translate;
+        vertice2 = (vertice2 / 80) + translate;
+        vertice3 = (vertice3 / 80) + translate;
 
         Vector3f vector1 = vertice2 - vertice1;
         Vector3f vector2 = vertice3 - vertice2;
         Plane plane = Plane(vertice1, vector1.cross(vector2), colour);
         plane.normal.normalize();
-        Triangle triangle;
-        triangle.setValues(
+        Triangle* triangle = new Triangle();
+        triangle->setValues(
             plane,
             vertice1,
             vertice2,
@@ -162,9 +182,11 @@ void Mesh::calculateTriangles(Eigen::MatrixXf vertices, Eigen::MatrixXi faces, E
             normal2,
             normal3
         );
-
-        triangles.push_back(triangle);
+        tris->push_back(triangle);
+        triangles.push_back(*triangle);
     }
+
+    kdNode = kdNode->build(*tris, 0);
 }
 
 bool Mesh::isTranslucent()

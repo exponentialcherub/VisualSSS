@@ -1,3 +1,4 @@
+#pragma once
 
 #include "Plane.h"
 #include "Line.h"
@@ -20,4 +21,6 @@ class BoundingBox
         bool intersects(Line ray);
         float getIntersectT(Line ray);
         void setValues(Vector3f min, Vector3f max);
+        void expand(BoundingBox other);
+        int longestAxis();
 };

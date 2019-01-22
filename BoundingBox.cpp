@@ -105,3 +105,41 @@ void BoundingBox::setValues(Vector3f minimum, Vector3f maximum)
     min = minimum;
     max = maximum;
 }
+
+void BoundingBox::expand(BoundingBox other)
+{
+    for(int i=0;i<3;i++)
+    {
+        if(other.min[i]<min[i])
+        {
+            min[i] = other.min[i];
+        }
+        if(other.max[i]>max[i])
+        {
+            max[i] = other.max[i];
+        }
+    }
+}
+
+int BoundingBox::longestAxis()
+{
+    float x = fabs(max[0] - min[0]);
+    float y = fabs(max[1] - min[1]);
+    float z = fabs(max[2] - min[2]);
+    if(x > z)
+    {
+        if(x > y)
+        {
+            return 0;
+        }
+        return 1;
+    }
+    else
+    {
+        if(z > y)
+        {
+            return 2;
+        }
+        return 1;
+    }
+}

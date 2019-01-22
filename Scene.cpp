@@ -232,17 +232,25 @@ void Scene::rayTrace(Line ray, float *pixel, int singleScatteringSamples, int mu
             Vector3f diffuse;
             // Diffusion approximation equation.
             diffuse[0] = radiance[0] * (albedo / (4 * EIGEN_PI)) * 
-                         (rDistance * ((sigmaTR[0] * dr + 1) * (expf(-sigmaTR[0]*dr) / (pow(dr, 3)))) -
-                            vDistance * (sigmaTR[0]*dv + 1) * (expf(-sigmaTR[0]*dv) / (pow(dv, 3))));
+                         (rDistance * ((sigmaTR[0] * dr + 1) * (expf(-sigmaTR[0]*dr) / (reducedSigmaT[0]* pow(dr, 3)))) +
+                            vDistance * (sigmaTR[0]*dv + 1) * (expf(-sigmaTR[0]*dv) / (reducedSigmaT[0]*pow(dv, 3))));
             diffuse[1] = radiance[1] * (albedo / (4 * EIGEN_PI)) * 
-                         (rDistance * ((sigmaTR[1] * dr + 1) * (expf(-sigmaTR[1]*dr) / (pow(dr, 3)))) -
-                            vDistance * (sigmaTR[1]*dv + 1) * (expf(-sigmaTR[1]*dv) / (pow(dv, 3))));
+                         (rDistance * ((sigmaTR[1] * dr + 1) * (expf(-sigmaTR[1]*dr) / (reducedSigmaT[1]*pow(dr, 3)))) +
+                            vDistance * (sigmaTR[1]*dv + 1) * (expf(-sigmaTR[1]*dv) / (reducedSigmaT[1]*pow(dv, 3))));
             diffuse[2] = radiance[2] * (albedo / (4 * EIGEN_PI)) * 
-                         (rDistance * ((sigmaTR[2] * dr + 1) * (expf(-sigmaTR[2]*dr) / (pow(dr, 3)))) -
-                            vDistance * (sigmaTR[2]*dv + 1) * (expf(-sigmaTR[2]*dv) / (pow(dv, 3))));
+                         (rDistance * ((sigmaTR[2] * dr + 1) * (expf(-sigmaTR[2]*dr) / (reducedSigmaT[2] * pow(dr, 3)))) +
+                            vDistance * (sigmaTR[2]*dv + 1) * (expf(-sigmaTR[2]*dv) / (reducedSigmaT[2]*pow(dv, 3))));
+                            for(int i = 0; i < 3; i++)
+    {
+        if(diffuse[i] > 1)
+        {
+            diffuse[i] = 1;
+        }
+        
+    }
             multipleScatteringContribution += (weight * diffuse * fresnelTrans1);
         }
-        multipleScatteringContribution *= multipleScatterWeight*fresnelTrans0 / totalWeight;
+        multipleScatteringContribution *= 5*multipleScatterWeight*fresnelTrans0 / totalWeight;
     }
 
     pixel[0] = singleScatteringContribution[0] + multipleScatteringContribution[0];

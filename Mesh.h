@@ -2,6 +2,7 @@
 #include "Plane.h"
 #include "Triangle.h"
 #include "BoundingBox.h"
+#include "KdNode.h"
 #include <Eigen/Core>
 #include <vector>
 #include <limits>
@@ -20,6 +21,7 @@ class Mesh : public Object
     vector<Triangle> triangles;
     int noTriangles;
     BoundingBox boundingBox;
+    KdNode* kdNode;
 
     bool translucent;
 
